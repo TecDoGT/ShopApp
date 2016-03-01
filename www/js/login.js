@@ -66,6 +66,7 @@ function ValEntrada ()
 			else
 			{
 				window.sessionStorage.UserLogin = UName;
+				window.sessionStorage.UserEmpresa = $(root).find("EMPRESA").text();
 				var txtMsg = $("#tLogIn").text();
 				new Messi(txtMsg, 
 					{
@@ -83,11 +84,11 @@ function ValEntrada ()
 						width: (window.innerWidth - 25),
 						callback: function (val)
 						{
-							window.location = "#page-home"
+							window.location = "#vc_grupos"
 						}
 					});
 			}
-			
+			$("#loadingAJAX").hide();
 		},"text")
 		.fail(function ()
 		{
@@ -107,8 +108,9 @@ function ValEntrada ()
 					modal: true,
 					width: (window.innerWidth - 25)
 				});
+				$("#loadingAJAX").hide();
 		});
-		$("#loadingAJAX").hide();
+		
 
 	}
 }

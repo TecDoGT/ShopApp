@@ -42,3 +42,16 @@
 	margin-left:5px; 
 	border-radius:5px;
 }
+
+tr {
+    border-bottom: 1px solid #d6d6d6;
+}
+
+th {
+    border-bottom: 2px solid #d6d6d6;
+}
+
+tr:nth-child(even) {
+    background: #999999;
+}
+

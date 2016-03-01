@@ -1,6 +1,4 @@
 // Espaniol a Ingles
-$(document).ready(function()
-{
 
 	i18n_dict = 
 	{
@@ -21,11 +19,5 @@ $(document).ready(function()
 	};
 	
 	$.i18n.load(i18n_dict);
-	
-	$("#btnTraslate").click(function (event)
-	{
-		$("#tInicio")._t("Example 3");
-		$("#btnTraslate")._t("English");
-	});
-});
+
 

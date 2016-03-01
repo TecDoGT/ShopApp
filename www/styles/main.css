@@ -8,7 +8,10 @@
     position: relative;
     top: -2px;
 }
-
+.btnVer
+{
+	animation:linear;
+}
 .err {
     color: red;
 }
@@ -20,6 +23,13 @@
 .left {
     float: left;
     display: inline-block;
+}
+
+.fixed-top {
+  position: fixed;
+  top:0; left:0;
+  width: 100%;
+  margin-bottom:50px; 
 }
 
 .right {
