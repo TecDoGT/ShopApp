@@ -1,3 +1,4 @@
+
 function ValEntrada ()
 {
 	//var UCode = $("#tbUserCode").val();
@@ -6,7 +7,7 @@ function ValEntrada ()
 	
 	UName = UName.toUpperCase();
 	
-	var NCerrarS = $("#cbSesionPermanete").is(":checked");
+	//var NCerrarS = $("#cbSesionPermanete").is(":checked");
 	
 	if (UName == "" || UPwd == "")
 	{
@@ -33,83 +34,153 @@ function ValEntrada ()
 		
 		$(document).delay(1000);
 		
-		$.get("http://200.30.150.165:8080/webservidor/index.php",
+		if (navigator.onLine)
 		{
-			"leer"	: "16",
-			"uuid"	: UPwd,
-			"asesor": UName
-		},
-		function (data)
-		{
-			xml = StringToXML(data);
-			root = xml.documentElement;
-			
-			if ($(root).find("EMPRESA").text() == "")
+			$.post("http://200.30.150.165:8080/webservidor2/mediador.php",
 			{
-				var txtMsg = $("#tErrorLogin").text();
-				new Messi(txtMsg, 
-					{
-						title: 'Volcafe', 
-						titleClass: 'anim error', 
-						buttons: 
-							[
-								{
-									id: 0, 
-									label: 'Cerrar', 
-									val: 'X'
-								}
-							],
-						modal: true,
-						width: (window.innerWidth - 25)
-					});
-			}
-			else
+				"pwd"	: UPwd,
+				"user"	: UName
+			},
+			function (data)
 			{
-				window.sessionStorage.UserLogin = UName;
-				window.sessionStorage.UserEmpresa = $(root).find("EMPRESA").text();
-				var txtMsg = $("#tLogIn").text();
-				new Messi(txtMsg, 
-					{
-						title: 'Volcafe', 
-						titleClass: 'anim success', 
-						buttons: 
-							[
-								{
-									id: 0, 
-									label: 'Cerrar', 
-									val: 'X'
-								}
-							],
-						modal: true,
-						width: (window.innerWidth - 25),
-						callback: function (val)
-						{
-							window.location = "#vc_grupos"
-						}
-					});
-			}
-			$("#loadingAJAX").hide();
-		},"text")
-		.fail(function ()
-		{
-			var txtMsg = $("#tNoInternet").text();
-			new Messi(txtMsg, 
+				if (data.ingreso != 1)
 				{
-					title: 'Volcafe', 
-					titleClass: 'anim error', 
-					buttons: 
+					var txtMsg = $("#tErrorLogin").text();
+					new Messi(txtMsg, 
+						{
+							title: 'Volcafe', 
+							titleClass: 'anim error', 
+							buttons: 
+								[
+									{
+										id: 0, 
+										label: 'Cerrar', 
+										val: 'X'
+									}
+								],
+							modal: true,
+							width: (window.innerWidth - 25)
+						});
+				}
+				else
+				{
+					window.sessionStorage.UserLogin = UName;
+					window.sessionStorage.UserEmpresa = data.usrEmpresa;
+					window.sessionStorage.UserName = data.nombreUser;
+					window.sessionStorage.UserPais = data.usrPais;
+					
+					var rs = db.SELECT("movil_User", function (row)
+					{
+						return (row.userName == UName);
+					});
+					
+					if (rs.length == 0)
+					{
+						var dataValues = 
 						[
 							{
-								id: 0, 
-								label: 'Cerrar', 
-								val: 'X'
+								userName: UName,
+								passWord: UPwd,
+								userPais: data.usrPais,
+								Empresa: data.usrEmpresa
 							}
-						],
-					modal: true,
-					width: (window.innerWidth - 25)
-				});
+						];
+						db.INSERT_INTO("movil_User", dataValues);
+					}
+					
+					
+					var txtMsg = $("#tLogIn").text();
+					new Messi(txtMsg, 
+						{
+							title: 'Volcafe', 
+							titleClass: 'anim success', 
+							buttons: 
+								[
+									{
+										id: 0, 
+										label: 'Cerrar', 
+										val: 'X'
+									}
+								],
+							modal: true,
+							width: (window.innerWidth - 25),
+							callback: function (val)
+							{
+								window.location = "#IndexPage"
+							}
+						});
+				}
 				$("#loadingAJAX").hide();
-		});
+			},"json")
+			.fail(function ()
+			{
+				rs = db.SELECT("movil_User", function (row)
+				{
+					return ( row.userName == UName && row.passWord == UPwd );
+				});
+				
+				if (rs.length > 0)
+				{
+					window.sessionStorage.UserLogin = rs[0].userName;
+					window.sessionStorage.UserEmpresa = rs[0].Empresa;
+					window.sessionStorage.UserPais = rs[0].userPais;
+					var txtMsg = $("#tLogIn").text();
+					new Messi(txtMsg, 
+						{
+							title: 'Volcafe', 
+							titleClass: 'anim success', 
+							buttons: 
+								[
+									{
+										id: 0, 
+										label: 'Cerrar', 
+										val: 'X'
+									}
+								],
+							modal: true,
+							width: (window.innerWidth - 25),
+							callback: function (val)
+							{
+								window.location = "#IndexPage"
+							}
+						});
+				}
+				else
+				{
+					var txtMsg = $("#tErrorLogin").text();
+					new Messi(txtMsg, 
+						{
+							title: 'Volcafe', 
+							titleClass: 'anim error', 
+							buttons: 
+								[
+									{
+										id: 0, 
+										label: 'Cerrar', 
+										val: 'X'
+									}
+								],
+							modal: true,
+							width: (window.innerWidth - 25)
+						});
+				}
+				$("#loadingAJAX").hide();
+			});
+		}
+		else
+		{
+			rs = db.SELECT("movil_User", function (row)
+			{
+				return ( userName == UName && passWord == UPwd );
+			});
+			
+			if (rs.length > 0)
+			{
+				window.sessionStorage.UserLogin = rs.userName;
+				window.sessionStorage.UserEmpresa = rs.Empresa;
+				window.sessionStorage.UserPais = rs.userPais;
+			}
+		}
 		
 
 	}

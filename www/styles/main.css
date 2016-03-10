@@ -3,6 +3,11 @@
     padding: 0.3em;
 }
 
+.HiddenTh
+{
+	visibility:hidden;
+}
+
 .ui-footer > .footerText {
     font-size: 0.8em;
     position: relative;

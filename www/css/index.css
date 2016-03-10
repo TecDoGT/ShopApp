@@ -11,7 +11,16 @@
 	-webkit-box-shadow: none;
 }
 .ui-icon-enLogo:after {
-	background-image:url(/../img/en.png);
+	background-image:url(img/enUK.png);
+	background-repeat:no-repeat;
+	background-size:cover;
+	width:23px;
+	height:23px;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+}
+.ui-icon-esLogo:after {
+	background-image:url(img/esES.png);
 	background-repeat:no-repeat;
 	background-size:cover;
 	width:23px;

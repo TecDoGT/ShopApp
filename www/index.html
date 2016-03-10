@@ -20,7 +20,7 @@
     <script src="jquery-mobile/js/jquery.mobile.custom.min.js" type="text/javascript"></script>
     <script src="jquery-mobile/js/jquery.touchSwipe.min.js" type="text/javascript"></script>
     <script src="jquery-mobile/js/messi.min.js" type="text/javascript"></script>
-    <script src="js/xml-converter.js" type="text/javascript"></script>
+    <script src="js/LocalStorageDB.js" type="text/javascript"></script>
     <script src="js/index.js" type="text/javascript"></script>
    	<script src="js/login.js" type="text/javascript"></script>
 
@@ -41,8 +41,13 @@
 
         <!--Header-->
         <div data-role="header" data-position="fixed">
-        	<button class="ui-btn ui-shadow ui-corner-all ui-icon-enLogo ui-btn-icon-notext" id="btnTraslate">English</button>
-            <a class="ui-btn ui-shadow ui-corner-all ui-icon-power ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-right" data-transition="flip" href="#LogInDialog">Iniciar</a>
+        	<table class="left">
+            	<tr>
+                	<td><button class="ui-btn ui-shadow ui-corner-all ui-icon-enLogo ui-btn-icon-notext" id="btnTraslate">English</button></td>
+                    <td><button class="ui-btn ui-shadow ui-corner-all ui-icon-esLogo ui-btn-icon-notext" >Espa&ntilde;ol</button></td>
+                </tr>
+            </table>
+            <a class="ui-btn ui-shadow ui-corner-all ui-icon-power ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-right" data-transition="flip" href="#LogInDialog">Iniciar Sesion</a>
             <h1>Volcafe App</h1>
         </div>
 
@@ -90,26 +95,57 @@
         </div>
     </div>
     
-    <div id="vc_grupos" data-role="page" data-theme="a">
-    	<div data-role="header" class="fixed-top">
-        	<button  class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-left" id="btnVC_Atras">Atras</button>
-        	<h1>Listado de Grupos</h1> <!-- Nombre de la forma-->
+    <div id="IndexPage" data-role="page" data-theme="a">
+    	<div data-role="panel" id="pMenu"  data-display="overlay">
+          <h2>Men&uacute;</h2>
+          <ul data-role="listview">
+          	<li><a href="#IndexPage" data-rel="close" id="btnDBDown">Descargar Base de Datos</a></li>
+          </ul>
         </div>
         
-        <div data-role="content" >
-        	<div id="vc_grupos_Lista" style="padding-top:25px">
-            	<table data-role="table" data-mode="columntoggle" class="ui-responsive ui-shadow" id="vc_grupos_Tabla">
+    	<div data-role="header" data-position="fixed">
+        	<a href="#pMenu" class="ui-btn ui-shadow ui-corner-all ui-icon-grid ui-btn-icon-notext ui-btn-a ui-btn-inline ui-btn-left">Menu</a>
+        	<h1>Inicio Sistema</h1>
+        </div>
+        
+        <div data-role="content">
+        	<div id="dMessageNoDB" class="messi-wrapper">
+            	<div class="messi-titlebox anim error">
+                	<span class="messi-title">Volcafe</span>
+                </div>
+                <div class="messi-content" style="padding: 10px; height: auto;" id="ldMessageNoDB">La base datos Local esta vacia <br/> Descarge la ultima version del Servidor. </div>
+            </div>
+            <div id="divUlModList">
+        	<ul data-role="listview" data-filter="true" data-inset="true" id="ulModList">
+            	
+            </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div id="vc_grupos" data-role="page" data-theme="a">
+    	<div data-role="header" data-position="fixed">
+        	<button  class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-left" id="btnVC_Atras">Atras</button>
+            <a class="ui-btn ui-shadow ui-corner-all ui-icon-home ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-right" href="#IndexPage">Inicio</a>
+        	<h1 id="lHForma">Listado de Grupos</h1> <!-- Nombre de la forma-->
+        </div>
+        
+        <div data-role="content" id="divContent">
+        	<div id="vc_grupos_Lista" >
+            	<form>
+                    <input id="filterTable-input" data-type="search">
+                </form>
+            	<table data-role="table" class="ui-responsive ui-shadow"  data-filter="true" data-input="#filterTable-input" id="vc_grupos_Tabla">
                 	<thead>
                     	<tr>
-                        	<th>Ver...</th>
+                        	<th data-priority="0" >Ver...</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
             </div>
-            <div id="vc_grupos_From" style="padding-top:30px">
-            	
+            <div id="vc_grupos_From">
             </div> 
         </div>
     </div>
