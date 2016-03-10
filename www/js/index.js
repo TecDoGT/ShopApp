@@ -53,7 +53,7 @@ $(document).ready(function(e)
 		$("#btnTraslate")._t("English");
 	});
 	
-	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading"];
+	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData"];
 		
 	$("#loadingAJAX").hide();
 	 
@@ -226,117 +226,202 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 			{
 				return row.tablaName == TableName
 			});
-			
+	
+	TableName = TableName.toLowerCase();
+	
 	if (rs.length == 0)
 	{
 		$("#loadingAJAX").show();	
-        $.get("http://200.30.150.165:8080/webservidor2/mediador.php", 
+		
+		if (window.localStorage.getItem("LocalStorageDB-KannelMovil-" + TableName) == undefined)
 		{
-			"cmd"		: "xmlData",
-			"Project"	: Project_Id,
-			"Object"	: Object_Id,
-			"Where"		: strWhere
-		},
-		function (data)
-		{
-			var $xml = $(data);
-						
-			var DataInsert = "[";
-			$xml.find("ROW").each(function(index, element) 
+			$.post("http://200.30.150.165:8080/webservidor2/mediador.php",
 			{
-				var $Sdata = $(this);
-				if (window.localStorage.getItem("LocalStorageDB-KannelMovil-" + TableName) == undefined)
-				{
-					var defData = '{ "id": 0,';
-					
-					DataInsert += " ,{";
-					$Sdata.children().each(function()
-					{
-						var $subData = $(this);
-						defData += ' "' + $subData[0].nodeName + '": "", ' ;
-						DataInsert += ' "' + $subData[0].nodeName + '": "' + $subData.text() + '", ' ;
-					});
-					
-					defData += "}";
-					DataInsert += "}";
-					
-					defData = defData.replace(", }", "}");
-					DataInsert = DataInsert.replace(", }", "}");
-					
-					objdefData = JSON.parse(defData);
-					
-					db.CREATE(TableName, objdefData);
-					
-				}
-				else
-				{
-					DataInsert += " ,{";
-					$Sdata.children().each(function()
-					{
-						var $subData = $(this);
-						DataInsert += ' "' + $subData[0].nodeName + '": "' + $subData.text() + '", ' ;
-					});
-					
-					DataInsert += "}";
-					
-					DataInsert = DataInsert.replace(", }", "}");
-				}
-			});
-			
-			DataInsert += "]";
-			
-			DataInsert = DataInsert.replace("[ ,{", "[{");
-			
-			objDataInsert = JSON.parse(DataInsert);
-			
-			db.INSERT_INTO(TableName, objDataInsert);
-			
-			db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle}]);
-			
-			if (Forma == 1)
+				"cmd"		: "xmlDef",
+				"Project"	: Project_Id,
+				"Object"	: Object_Id,
+				"Where"		: ""
+			},
+			function (data)
 			{
-				$("#ulModList").append('<li><a href="#" id="btn'+ TableName +'" onClick="alert('+ "'" +'Hola'+ "'" +')">'+ PageTitle +'</a></li>');
+				var $xml = $(data);
+				
+				var defData = '{ "id": 0, "fuente": 0, "sinc": 0, "modifica": 0, ';
+				$xml.find("ROW").each(function(index, element) 
+				{
+					var $SData = $(this);
+					
+					switch ($SData.find("SQL_DATATYPE").text())
+					{
+						case "IN":
+						case "DE":
+							var temp = $SData.find("ID").text() + "";
+							temp = temp.toLowerCase();
+							temp = temp.replace(TableName + "_", "");
+							defData += ' "' + temp.toLowerCase() + '": 0, ';
+							break;
+						default:
+							var temp = $SData.find("ID").text() + "";
+							temp = temp.toLowerCase();
+							temp = temp.replace(TableName + "_", "");
+							defData += ' "' + temp.toLowerCase() + '": "", ';
+							break;
+					}	
+				});
+				
+				defData += "}";
+				defData = defData.replace(", }", "}");
+				
+				objdefData = JSON.parse(defData);
 			
-				$("#ulModList").listview('refresh');
+				db.CREATE(TableName, objdefData);
 				
 				$("#loadingAJAX").show();
-			}
-			
-			$("#loadingAJAX").hide();
-		},"xml");
+				$.get("http://200.30.150.165:8080/webservidor2/mediador.php", 
+				{
+					"cmd"		: "xmlData",
+					"Project"	: Project_Id,
+					"Object"	: Object_Id,
+					"Where"		: strWhere
+				},
+				function (data)
+				{
+					$("#loadingAJAX").show();
+					var $xml = $(data);
+								
+					var DataInsert = "[";
+					$xml.find("ROW").each(function(index, element) 
+					{
+						var $Sdata = $(this);
+						DataInsert += " ,{";
+						$Sdata.children().each(function()
+						{
+							var $subData = $(this);
+							var temp = $subData[0].nodeName + "";
+							temp = temp.toLowerCase();
+							DataInsert += ' "' + temp + '": "' + $subData.text() + '", ' ;
+						});
+						
+						DataInsert += "}";
+						
+						DataInsert = DataInsert.replace(", }", "}");
+						
+					});
+					
+					DataInsert += "]";
+					
+					DataInsert = DataInsert.replace("[ ,{", "[{");
+					
+					objDataInsert = JSON.parse(DataInsert);
+					
+					db.INSERT_INTO(TableName, objDataInsert);
+					
+					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle}]);
+					
+					if (Forma == 1)
+					{
+						$("#ulModList").append('<li><a href="#" id="btn'+ TableName +'" onClick="alert('+ "'" +'Hola'+ "'" +')">'+ PageTitle +'</a></li>');
+					
+						$("#ulModList").listview('refresh');
+						
+					}
+					
+					$("#loadingAJAX").hide();
+				},"xml");
+				
+			},"xml");
+		}
 	}
 }
 
+$(document).on("pagecreate", "#GridCatalog", function ()
+{
+	$("#FBuscarCat").show();
+	$("#FGrid").hide();
+	
+	$("#btnFBuscar").click(function ()
+	{
+		var tableName = $("#tbFBuscar").val();
+		
+		var rs;
+		
+		try 
+		{
+			rs = db.SELECT(tableName);
+		
+			if (rs.length == 0)
+			{
+				var txtMsg = $("#lNoData").text();
+				new Messi(txtMsg, 
+						{
+							title: 'Kannel Mobil', 
+							titleClass: 'anim error', 
+							buttons: 
+								[
+									{
+										id: 0, 
+										label: 'Cerrar', 
+										val: 'X'
+									}
+								],
+							modal: true,
+							width: (window.innerWidth - 25)
+						});
+			}
+			else
+			{
+				$("#FGrid_Tabla").empty();
+				$("#FGrid_Tabla").append("<thead></thead><tbody></tbody>");
+				$("#FBuscarCat").hide();
+				$("#FGrid").show();
+				
+				$(rs).each(function(index, element) 
+				{
+					
+                    
+                });
+			}
+		}
+		catch (err)
+		{
+			Mensage(err.message);
+		}
+	});
+});
+
 $(document).on("pagecreate", "#IndexPage", function() 
 {
-	/*$("#btnUM").click(function () 
-	{
-		FormBuilder(55, 91, "", "Unidad de Medida");
-	});
-	
-	$("#btnCV_Cal").click(function() 
-	{
-        FormBuilder(55, 95, " where empresa=101", "Calendario");
-    });*/
-	
+
 	if (window.sessionStorage.UserLogin)
 	{
 	
 		$("#dMessageNoDB").hide();
 		$("#divUlModList").show();
+		$("#btnViewCat").show();
 		
 		$("#btnDBDown").click(function(e) 
 		{
-			DownLoadDataSave(55, 95, " empresa=" + window.sessionStorage.UserEmpresa, "Calendario", 1, "Calendario");  
-			DownLoadDataSave(55, 91, "", "UM", 0, "");  
-			DownLoadDataSave(55, 83, " pais=" + window.sessionStorage.UserPais, "depto", 0, "");
-			DownLoadDataSave(55, 84, " pais=" + window.sessionStorage.UserPais, "ciudad", 0, "");
-			DownLoadDataSave(55, 45, " empresa=" + window.sessionStorage.UserEmpresa, "vc_variedad", 0, "");
-			DownLoadDataSave(55, 48, "1=1", "vc_variedad", 0, "");
-			
+			//DownLoadDataSave(55, 95, " empresa=" + window.sessionStorage.UserEmpresa, "Calendario", 1, "Calendario");  
+			DownLoadDataSave(55, 91, "1=1", "UNIDAD_MEDIDA", 0, "");  
+			DownLoadDataSave(55, 83, " pais=" + window.sessionStorage.UserPais, "DEPARTAMENTO", 0, "");
+			DownLoadDataSave(55, 84, " pais=" + window.sessionStorage.UserPais, "CIUDAD", 0, "");
+			DownLoadDataSave(55, 45, " empresa=" + window.sessionStorage.UserEmpresa, "VC_VARIEDAD", 0, "");
+			DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, "");
+			DownLoadDataSave(55, 100, "1=1", "VC_ACTIVIDAD_PROMOTOR", 0, "");
+			DownLoadDataSave(55, 1, "empresa="+ window.sessionStorage.UserEmpresa, "VC_PRODUCTOR", 1, "Productor");
+			DownLoadDataSave(55, 42, "empresa="+ window.sessionStorage.UserEmpresa, "VC_FINCA", 1, "Finca");
+			//DownLoadDataSave(55, 79, "empresa="+ window.sessionStorage.UserEmpresa, "VC_VARIEDAD_FINCA", 1, "Variedad Finca");
+			DownLoadDataSave(55, 50, "empresa="+ window.sessionStorage.UserEmpresa, "VC_FINCA_CERTIFICACION", 1, "Certificaciones");
 			
 			$("#dMessageNoDB").hide();
 			$("#divUlModList").show();
+			$("#btnViewCat").show();
+		});
+		
+		$("#btnViewCat").click(function (e)
+		{
+			$("#FBuscarCat").show();
+			$("#FGrid").hide();
 		});
 		
 		var rs = db.SELECT("ListMod", function (row)
@@ -356,6 +441,8 @@ $(document).on("pagecreate", "#IndexPage", function()
 		{
 			$("#dMessageNoDB").show();
 			$("#divUlModList").hide();
+			
+			$("#btnViewCat").hide();
 		}
 	
 	}
@@ -371,7 +458,7 @@ function Mensage( texto )
 	$("#ajaxgif").hide();*/
 	new Messi(texto, 
 	{
-		title: 'Volcafe', 
+		title: 'Kannel Mobil', 
 		width: (window.innerWidth - 25),
 		callback: function(val)
 		{
@@ -380,63 +467,4 @@ function Mensage( texto )
 			$("#ajaxgif").show();
 		}
 	});
-}
-
-function Redirect ( x )
-{
-	switch (x)
-	{
-		case 0:
-			if (!window.sessionStorage.UserLogin)
-				window.location = "#page-LogIn";
-			else
-			{
-				new Messi('&iquest;Desea Cerrar Sesi&oacute;n?', 
-				{
-					title: 'Shopp App', 
-					width: (window.innerWidth - 25),
-					buttons: 
-						[
-							{
-								id: 0, 
-								label: 'Si', 
-								val: 'Y'
-							}, 
-							{
-								id: 1, 
-								label: 'No', 
-								val: 'N'
-							}
-						], 
-					callback: function(val) 
-					{ 
-						if (val == 'Y')
-						{
-							window.sessionStorage.removeItem("UserLogin");
-							window.location = "index.html";
-						}
-					}
-				});
-			}
-			break;
-		case 1:
-			window.location = "#hogar-sala";
-			break;
-		case 3:
-			window.location = "#view-itemPagina";
-			$("#VItemTitle").text('Hola');
-			$("#VItemImage").attr('src','img/DB/Sala/photo2.jpg' );
-			$("#VIPrice").text('Q 333');
-			$("#VIDesc").text('Hola');
-			break;
-	}
-}
-
-function viewItemPagina( title, price, desc, urlImage )
-{
-	window.location = "#view-itemPagina";
-	$("#VItemTitle").text(title);
-	$("#VItemImage").attr('src',urlImage );
-	$("#VIPrice").text(price);
-	$("#VIDesc").text(desc);
 }

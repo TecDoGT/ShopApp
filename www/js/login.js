@@ -14,7 +14,7 @@ function ValEntrada ()
 		var txtMsg = $("#Texto1").text();
 		new Messi(txtMsg, 
 					{
-						title: 'Volcafe', 
+						title: 'Kannel Mobil', 
 						titleClass: 'anim error', 
 						buttons: 
 							[
@@ -48,7 +48,7 @@ function ValEntrada ()
 					var txtMsg = $("#tErrorLogin").text();
 					new Messi(txtMsg, 
 						{
-							title: 'Volcafe', 
+							title: 'Kannel Mobil', 
 							titleClass: 'anim error', 
 							buttons: 
 								[
@@ -92,7 +92,7 @@ function ValEntrada ()
 					var txtMsg = $("#tLogIn").text();
 					new Messi(txtMsg, 
 						{
-							title: 'Volcafe', 
+							title: 'Kannel Mobil', 
 							titleClass: 'anim success', 
 							buttons: 
 								[
@@ -127,7 +127,7 @@ function ValEntrada ()
 					var txtMsg = $("#tLogIn").text();
 					new Messi(txtMsg, 
 						{
-							title: 'Volcafe', 
+							title: 'Kannel Mobil', 
 							titleClass: 'anim success', 
 							buttons: 
 								[
@@ -150,7 +150,7 @@ function ValEntrada ()
 					var txtMsg = $("#tErrorLogin").text();
 					new Messi(txtMsg, 
 						{
-							title: 'Volcafe', 
+							title: 'Kannel Mobil', 
 							titleClass: 'anim error', 
 							buttons: 
 								[
