@@ -34,7 +34,8 @@ function ValEntrada ()
 		
 		$(document).delay(1000);
 		
-		if (navigator.onLine)
+		//if (navigator.onLine)
+		if (true)
 		{
 			$.post("http://200.30.150.165:8080/webservidor2/mediador.php",
 			{
