@@ -113,7 +113,7 @@ function ValEntrada ()
 				}
 				$("#loadingAJAX").hide();
 			},"json")
-			.fail(function ()
+			.fail(function (xhr, textStatus, errorThrown)
 			{
 				rs = db.SELECT("movil_User", function (row)
 				{
@@ -148,7 +148,7 @@ function ValEntrada ()
 				}
 				else
 				{
-					var txtMsg = $("#tErrorLogin").text() + " [Offline]";
+					var txtMsg = $("#tErrorLogin").text() + " [Offline] " + xhr.responseText;
 					new Messi(txtMsg, 
 						{
 							title: 'Kannel Mobil', 
