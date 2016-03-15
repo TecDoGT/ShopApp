@@ -6,9 +6,9 @@
    <content src="index.html"/>
    <preference name="phonegap-version" value="3.7.0" />
   <preference name="permissions" value="none"/>
-  <preference name="orientation" value="default"/>
+  <preference name="orientation" value="landscape"/>
   <preference name="target-device" value="universal"/>
-  <preference name="fullscreen" value="true"/>
+  <preference name="fullscreen" value="false"/>
   <preference name="webviewbounce" value="true"/>
   <preference name="prerendered-icon" value="true"/>
   <preference name="stay-in-webview" value="false"/>
@@ -36,7 +36,7 @@
 	<plugin name="org.apache.cordova.media" source="pgb" spec="0.2.13" />
 	<plugin name="org.apache.cordova.media-capture" source="pgb" spec="0.3.3" />
 	<plugin name="org.apache.cordova.network-information" source="pgb" spec="0.2.12" />
-	<plugin name="org.apache.cordova.splashscreen" source="pgb" spec="0.3.4" />
+	<plugin name="org.apache.cordova.splashscreen" source="pgb" spec="1.0.0" />
 	<plugin name="org.apache.cordova.vibration" source="pgb" spec="0.3.11" />
 
   <icon src="icon.png"/>
