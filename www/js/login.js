@@ -46,7 +46,7 @@ function ValEntrada ()
 			{
 				if (data.ingreso != 1)
 				{
-					var txtMsg = $("#tErrorLogin").text();
+					var txtMsg = $("#tErrorLogin").text()+ " [Online]" ;
 					new Messi(txtMsg, 
 						{
 							title: 'Kannel Mobil', 
@@ -148,7 +148,7 @@ function ValEntrada ()
 				}
 				else
 				{
-					var txtMsg = $("#tErrorLogin").text();
+					var txtMsg = $("#tErrorLogin").text() + " [Offline]";
 					new Messi(txtMsg, 
 						{
 							title: 'Kannel Mobil', 
