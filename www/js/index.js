@@ -1,5 +1,6 @@
 var db;
 var uriServer = "http://200.30.150.165:8080/webservidor2/mediador.php";
+window.screen..unlockOrientation();
 $(document).ready(function(e) 
 {
 	
