@@ -92,7 +92,7 @@ function CreateDB(name)
 			Empresa: ''
 		});
 		
- 		db.CREATE ("ListMod", {id: 0, tablaName: '', neadForm: 0, formTitle: '', sinc: 0, project_id: 0, object_id: 0});
+ 		db.CREATE ("ListMod", {id: 0, tablaName: '', neadForm: 0, formTitle: '', sinc: 0, project_id: 0, object_id: 0, padre: 0});
 }
 
 function FormBuilder(Project_Id, Object_Id, strWhere, PageTitle)
@@ -338,6 +338,7 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 				function (data)
 				{
 					$("#loadingAJAX").show();
+					$("#dMessageBDDone").hide();
 					var $xml = $(data);
 								
 					var DataInsert = "[";
@@ -367,20 +368,12 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					
 					db.INSERT_INTO(TableName, objDataInsert);
 					
-					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle, project_id: Project_Id, object_id: Object_Id}]);
-					
-					if (Forma == 1)
-					{
-						var text = "'" + TableName + "', " +  Project_Id + ", " + Object_Id 
-						$("#ulModList").append('<li><a href="#PageBuilder" id="btn'+ TableName +'" onClick="BuildFormMobil(' + text + ')">'+ PageTitle +'</a></li>');
-					    $("#loadingAJAX").show();
-						$("#ulModList").listview('refresh');
-						
-					}
+					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle, project_id: Project_Id, object_id: Object_Id}]);				
+					$("#dMessageBDDone").show();
 					
 					$("#loadingAJAX").hide();
 				},"xml");
-				
+				$("#dMessageNoDB").hide();
 			},"xml");
 		}
 	}
@@ -459,31 +452,71 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 	if (rs.length != 0)
 	{
 		var $jqRS = $(rs);
+		
+		$jqRS.each(function(index, ele1) 
+		{
+			var txtHtml = "<th data-priority='" + (index + 1) + "'>";
+			
+			if (ele1.sql_pk == 'P')
+				txtHtml = "<th data-priority='" + (index + 1) + "' class = 'ui-table-cell-hidden'>";
+				
+			txtHtml += ele1.label + "</th>";
+			
+			$("#PageBuilder_Tabla tr:first").append(txtHtml);
+			
+			
+			
+		});
+		
 		var DataRs = db.SELECT(tableName, Owhere);
 		
 		if (DataRs.length > 0)
 		{	
 			var $jqDataRS = $(DataRs);
 			
+			var rowCont = 0;
+			var txtBody = "";
 			$jqDataRS.each(function(index, element) 
 			{
+				rowCont++;
+				txtBody += "<tr>";
+				txtBody += "<td><a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#vc_grupos'>Ir.</a></td>";
             	$jqRS.each(function(index, ele1) 
 				{
+					var temp = ele1.id_obj;
+					temp = temp.toLowerCase();
+					temp = temp.replace (tableName + "_", "");
 					
+					var result = element[temp];
+					
+					txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";					
 				});  
+				
+				txtBody += "</tr>";
             });
+			
+			$("#PageBuilder_Tabla tbody").append(txtBody);
+			
+			$("#PageBuilder_Tabla").table().table("refresh");
+    		$("#PageBuilder_Tabla-popup-popup").css("background-color", "#d3d3d3");
+			
 			
 		}
 		else
 		{
-			alert('no data');
+			Mensage('no data');
 		}
+		
+		window.location = "#PageBuilder";
+		$("#PageBuilder_From").hide();
+		$("#PageBuilder_Tabla").show();
+		$("#btnVC_Atras").hide();
 	}
 }
 
 function BuildFormMobil(tableName, project_id, object_id)
 {
-	$("#vc_grupos_From").empty();
+	$("#PageBuilder_From").empty();
 	
 	var rs = db.SELECT("def_tables_movil", function (row)
 	{
@@ -605,31 +638,107 @@ $(document).on("pagecreate", "#GridCatalog", function ()
 	});
 });
 
+function GROUP_BY ( data, col)
+{
+	var groups = {};
+
+	$.each(data, function(i, ele) 
+	{
+		var level = ele[col];
+	
+		delete ele[col];
+	
+		if(groups[level]) 
+		{
+			groups[level].push(ele);
+		} else 
+		{
+			groups[level] = [ele];
+		}
+	});
+	
+	var result = $.map(groups, function(group, key) 
+	{
+		var obj = {};
+		obj[key] = group;
+	
+		return obj;
+	});
+	
+	return result;
+}
+
 function RefreshIndex()
 {
-	var rs = db.SELECT("ListMod", function (row)
-				{
-					return row.neadForm == 1
-				});
-		
-		if (rs.length > 0)
-		{
-			$("#ulModList").empty();
-			$("#ulModList").listview('refresh');
-			$(rs).each(function(index, element) 
-			{
-				var text = "'" + element.tablaName + "', " +  element.project_id + ", " + element.object_id ;
-				$("#ulModList").append('<li><a href="#PageBuilder" id="btn'+ element.tablaName +'" onClick="BuildFormMobil(' + text + ')">'+ element.formTitle +'</a></li>');	
-			});
-			$("#ulModList").listview('refresh');
-		}
-		else
-		{
-			$("#dMessageNoDB").show();
-			$("#divUlModList").hide();
+	$("#dMessageNoDB").hide();
+	$("#divUlModList").show();
+	$("#btnViewCat").show();		
+	$("#dMessageBDDone").hide();
 			
-			$("#btnViewCat").hide();
+	var rsDos = db.SELECT("Object_Det_Movil", function (row) 
+	{
+		return row.project_id == 58
+	});
+	
+	if (rsDos.length > 0 )
+	{
+		var ModAgrupados = GROUP_BY(rsDos, "object_id");
+		
+		var objID = [];
+		
+		$.map(ModAgrupados, function (ele, index)
+		{
+			var key = Object.keys(ele);
+			
+			objID.push(key[0]);
+		});
+		
+		var rsMods = db.SELECT("Object_Movil", function (row) 
+		{
+			var idStr = row.object_id + "";
+			var res = objID.indexOf(idStr);
+			
+			return  row.project_id == 58 && 
+					res > -1;
+		});
+		
+		if (rsMods.length > 0)
+		{
+			$.each(rsMods, function (index, ele)
+			{
+				db.UPDATE("ListMod", {padre: 1}, {project_id: ele.movil_proj, object_id: ele.movil_obj});
+			});
 		}
+		
+	}
+	
+	var rs = db.SELECT("ListMod", function (row)
+	{
+		return  row.neadForm == 1 && 
+				row.padre == 1 
+	});
+	
+	if (rs.length > 0)
+	{
+		$("#ulModList").empty();
+		$("#ulModList").listview('refresh');
+		$(rs).each(function(index, element) 
+		{
+			var text = "'" + element.tablaName + "', " +  element.project_id + ", " + element.object_id ;
+			
+			var primaryKeys = GetPrimaryKey(element.tablaName, element.project_id, element.object_id);
+			
+			$("#ulModList").append('<li><a href="#PageBuilder" id="btn'+ element.tablaName +'" onClick="BuildFormMobil(' + text + ')">'+ element.formTitle +'</a></li>');	
+		});
+		$("#ulModList").listview('refresh');
+	}
+	else
+	{
+		$("#dMessageNoDB").show();
+		$("#divUlModList").hide();
+		
+		$("#btnViewCat").hide();
+	}
 }
 
 $(document).on("pagecreate", "#IndexPage", function() 
@@ -643,6 +752,7 @@ $(document).on("pagecreate", "#IndexPage", function()
 		$("#dMessageNoDB").hide();
 		$("#divUlModList").show();
 		$("#btnViewCat").show();
+		$("#dMessageBDDone").hide();
 		
 		$("#btnDBDown").click(function(e) 
 		{
@@ -680,19 +790,18 @@ $(document).on("pagecreate", "#IndexPage", function()
 					DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, "");
 					DownLoadDataSave(55, 100, "1=1", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 				},"json");
-				
-				
-				
-				
-				$("#dMessageNoDB").hide();
-				$("#divUlModList").show();
-				$("#btnViewCat").show();
+
 			}
 			else
 			{
 				window.location = "#LogInDialog";
 			}
 		});
+		
+		$("#btnLoadModules").click(function(e) 
+		{
+         	RefreshIndex();   
+        });
 		
 		$("#btnViewCat").click(function (e)
 		{

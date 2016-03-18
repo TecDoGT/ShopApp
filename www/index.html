@@ -144,6 +144,14 @@
                 </div>
                 <div class="messi-content" style="padding: 10px; height: auto;" id="ldMessageNoDB">La base datos Local esta vacia <br/> Descarge la ultima version del Servidor. </div>
             </div>
+            <div id="dMessageBDDone" class="messi-wrapper">
+            	<div class="messi-titlebox anim success">
+                	<span class="messi-title">Kannel Mobil</span>
+                </div>
+                <div class="messi-content" style="padding: 10px; height: auto;">
+                	<button class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-left" id="btnLoadModules">Cargar Modulos</button>
+                </div>
+            </div>
             <div id="divUlModList">
         	<ul data-role="listview" data-filter="true" data-inset="true" id="ulModList">
             	
@@ -166,7 +174,7 @@
             	<form>
                     <input id="filterTable-input" data-type="search">
                 </form>
-            	<table data-role="table" class="ui-responsive ui-shadow"  data-filter="true" data-input="#filterTable-input" id="PageBuilder_Tabla">
+            	<table data-role="table" class="ui-responsive ui-shadow"  data-mode="columntoggle" data-filter="true" data-input="#filterTable-input" id="PageBuilder_Tabla">
                 	<thead>
                     	<tr>
                         	<th data-priority="0" >Ver...</th>
