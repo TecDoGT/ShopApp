@@ -38,6 +38,21 @@ $(document).ready(function(e)
 	});  
 });
 
+function Mensage(texto) {
+    /*$("#loadingAJAX").show();
+	$("#ajaxgif").hide();*/
+    new Messi(texto,
+	{
+	    title: 'Kannel Mobil',
+	    width: (window.innerWidth - 25),
+	    callback: function (val) {
+	        alert(val);
+	        $("#loadingAJAX").hide();
+	        $("#ajaxgif").show();
+	    }
+	});
+}
+
 function CreateDB(name)
 {
 	db = new LocalStorageDB(name);
@@ -98,12 +113,7 @@ function CreateDB(name)
 function FormBuilder(Project_Id, Object_Id, strWhere, PageTitle)
 {
 	ClearForm();
-	$("#btnVC_Atras").click(function ()
-	{
-		$("#vc_grupos_Lista").show();
-		$("#vc_grupos_From").hide();
-		$("#btnVC_Atras").hide();
-	});
+	
 	
 	$("#lHForma").text(PageTitle);
 	
@@ -403,6 +413,47 @@ function DropDataBase(name)
 	}
 }
 
+function testEval ()
+{
+	
+	$("#ulSideMenu").append("<li><a href='#' onClick='FETEST()' data-rel='close' >test2</a></li>");
+	$("#ulSideMenu").listview('refresh');
+	;
+	var stringFuntion = "function FETEST() {alert('works ' + window.sessionStorage.getItem('empresa'));}";
+	
+	$.globalEval(stringFuntion);
+}
+
+function BuildMantenimineto(tableName, proj_Id, obj_Id)
+{
+	var PK = GetPrimaryKey(tableName, proj_Id, obj_Id);
+	
+	var PKs = [];
+	var Owhere = "{ ";
+		
+	$.each(PK, function (index, ele)
+	{
+     	var temp = window.sessionStorage.getItem(ele);
+		if (temp == null)
+		{
+			PKs.push(ele);
+		}
+		else
+		{
+			Owhere += '"' + ele + '": ' + temp + ", ";
+		}
+	});
+	
+	Owhere += "}";
+	Owhere = Owhere.replace (", }", "}");
+	
+	var JOwhere = JSON.parse(Owhere);
+	
+	window.sessionStorage.PKNext = PKs;
+	
+	DataGrid(tableName, proj_Id, obj_Id, JOwhere);
+}
+
 function GetPrimaryKey(tableName, proj_Id, obj_Id)
 {
 	var salida = [];
@@ -435,8 +486,11 @@ function GetPrimaryKey(tableName, proj_Id, obj_Id)
 
 function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 {
-	$("#vc_grupos_Tabla").empty();
-	$("#vc_grupos_Tabla").append("<thead><tr><th data-priority='0' >Ver...</th></tr></thead><tbody></tbody>");
+	
+	//$("#PageBuilder_Tabla").trigger( "create" );
+	$("#vc_grupos_Tabla tbody").empty();
+	$("#vc_grupos_Tabla thead").empty();
+	
 	
 	tableName = tableName.toLowerCase();
 	
@@ -452,21 +506,21 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 	if (rs.length != 0)
 	{
 		var $jqRS = $(rs);
-		
+		//var txtHtml = "<tr>";
+		var txtHtml = "";
 		$jqRS.each(function(index, ele1) 
 		{
-			var txtHtml = "<th data-priority='" + (index + 1) + "'>";
-			
 			if (ele1.sql_pk == 'P')
-				txtHtml = "<th data-priority='" + (index + 1) + "' class = 'ui-table-cell-hidden'>";
+				txtHtml += "<th data-priority='" + (index + 1) + "' >";
+			else		
+				txtHtml += "<th data-priority='" + (index + 1) + "'>";
 				
 			txtHtml += ele1.label + "</th>";
-			
-			$("#PageBuilder_Tabla tr:first").append(txtHtml);
-			
-			
-			
 		});
+		
+		//txtHtml += "</tr>";
+		
+		
 		
 		var DataRs = db.SELECT(tableName, Owhere);
 		
@@ -480,7 +534,9 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 			{
 				rowCont++;
 				txtBody += "<tr>";
-				txtBody += "<td><a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#vc_grupos'>Ir.</a></td>";
+				var params = '"' + tableName + '", ' + proj_Id + ", " + obj_Id + ", " + element.id;
+				
+				txtBody += "<td><a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a></td>";
             	$jqRS.each(function(index, ele1) 
 				{
 					var temp = ele1.id_obj;
@@ -489,17 +545,31 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 					
 					var result = element[temp];
 					
-					txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";					
+					//txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";
+					txtBody += "<td >"+ result +"</td>";					
 				});  
 				
 				txtBody += "</tr>";
             });
 			
-			$("#PageBuilder_Tabla tbody").append(txtBody);
 			
-			$("#PageBuilder_Tabla").table().table("refresh");
-    		$("#PageBuilder_Tabla-popup-popup").css("background-color", "#d3d3d3");
-			
+				  
+			$("#PageBuilder_Tabla").table(
+			{
+			  create: function( event, ui ) 
+			  {
+				  $("#PageBuilder_Tabla tr:first").append(txtHtml);
+				  $("#PageBuilder_Tabla tbody").append(txtBody);
+				 
+				 // $("#PageBuilder_Tabla-popup-popup").css("background-color", "#d3d3d3");
+			  },
+			  columnPopupTheme: "a",
+			  refresh: null
+			});
+		
+			 
+			 $("#PageBuilder_Tabla").table("refresh");
+			 
 			
 		}
 		else
@@ -514,18 +584,22 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 	}
 }
 
-function BuildFormMobil(tableName, project_id, object_id)
+function BuildFormMobil(tableName, project_id, object_id, rowID)
 {
+    window.sessionStorage.setItem("#RowID", rowID);
+
 	$("#PageBuilder_From").empty();
 	
 	var rs = db.SELECT("def_tables_movil", function (row)
 	{
-		var numCol = row.sql_colnum * 1;
-		
-		return  row.project_id == project_id &&
+	    var numCol = row.sql_colnum * 1;
+
+	    return row.project_id == project_id &&
 				row.object_id == object_id &&
 				numCol > 0
-	}).ORDER_BY( 'sql_colnum ASC' );
+	}).ORDER_BY('sql_colnum ASC');
+
+	var rsData = db.SELECT(tableName, { id: rowID });
 	
 	if (rs.length != 0)
 	{
@@ -535,36 +609,58 @@ function BuildFormMobil(tableName, project_id, object_id)
 		
 		$jqrs.each(function(index, ele) 
 		{
-			textHtml += "<label>" + ele.label + "</label>";
-			if (ele.sql_pk == "P")
-				textHtml += "";
-			else
-			{
-				switch (ele.content_type)
-				{
-					case "D":
-						switch (ele.sql_datatype)
-						{
-							case "IN":
-							case "DE":
-								textHtml += "<div class = 'ui-input-text ui-body-inherit ui-corner-all ui-shadow-inset'>";
-								textHtml += "<input type='number' id='" + ele.id_obj + "' value='0'/>";
-								textHtml += "</div>";
-								break;
-							case "VA":
-								textHtml += "<div class = 'ui-input-text ui-body-inherit ui-corner-all ui-shadow-inset'>";
-								textHtml += "<input type='text' id='" + ele.id_obj + "' value=''/>";
-								textHtml += "</div>";
-								break;
-						}
-						break;
-				}
-			}
+		    var tempID = ele.id_obj + "";
+		    tempID = tempID.toLowerCase().replace(tableName + "_", "");
+
+		    var InputValue = rsData[0][tempID];
+
+		    $("#PageBuilder_From").append("<label>" + ele.label + "</label>");
+		    if (ele.sql_pk == "P")
+		    {
+		        $("<input>").attr({ 'type': 'text', 'disabled': 'disabled', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
+		        $('input').textinput();
+		    }
+		    else
+		    {
+		        switch (ele.content_type) {
+		            case "D":
+		                switch (ele.sql_datatype) {
+		                    case "IN":
+		                    case "DE":
+		                        $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
+		                        $('input').textinput();
+		                        break;
+		                    case "VA":
+		                        $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
+		                        $('input').textinput();
+		                        break;
+		                }
+		                break;
+		            case "B":
+		                var tempID = "#" + ele.id_obj;
+		                $("<select>").attr({ 'id': ele.id_obj }).appendTo("#PageBuilder_From");
+		                $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
+
+		                var listL_S = ele.list_labels + "";
+		                var listV_S = ele.list_values + "";
+
+		                listL = listL_S.split(",");
+		                listV = listV_S.split(",");
+
+		                $.each(listL, function (i, valor) {
+		                    if (InputValue == listV[i])
+		                        $("<option>").attr({ 'value': listV[i], 'selected': 'selected' }).html(valor).appendTo(tempID);
+		                    else
+		                        $("<option>").attr({ 'value': listV[i] }).html(valor).appendTo(tempID);
+		                });
+
+		                $('select').selectmenu();
+		                break;
+		        }
+		    }
 				
-        });
-		
-		$("#PageBuilder_From").append(textHtml);
-		
+		});
+
 		var rsTabla = db.SELECT("ListMod", function (row)
 		{
 			return row.project_id == project_id &&
@@ -578,8 +674,8 @@ function BuildFormMobil(tableName, project_id, object_id)
 		
 		
 		$("#PageBuilder_From").show();
-		$("#PageBuilder_Tabla").hide();
-		$("#btnVC_Atras").hide();
+		$("#PageBuilder_Lista").hide();
+		$("#btnVC_Atras").show();
 	}
 }
 
@@ -725,10 +821,8 @@ function RefreshIndex()
 		$(rs).each(function(index, element) 
 		{
 			var text = "'" + element.tablaName + "', " +  element.project_id + ", " + element.object_id ;
-			
-			var primaryKeys = GetPrimaryKey(element.tablaName, element.project_id, element.object_id);
-			
-			$("#ulModList").append('<li><a href="#PageBuilder" id="btn'+ element.tablaName +'" onClick="BuildFormMobil(' + text + ')">'+ element.formTitle +'</a></li>');	
+					
+			$("#ulModList").append('<li><a href="#PageBuilder" id="btn'+ element.tablaName +'" onClick="BuildMantenimineto(' + text + ')">'+ element.formTitle +'</a></li>');	
 		});
 		$("#ulModList").listview('refresh');
 	}
@@ -748,6 +842,8 @@ $(document).on("pagecreate", "#IndexPage", function()
 	{
 		$("#lUserEmpresa").text("Empresa: "+ window.sessionStorage.UserEmpresa);
 		$("#lUserName").text("Usuario: " + window.sessionStorage.UserLogin);
+		
+		window.sessionStorage.setItem("empresa", window.sessionStorage.UserEmpresa);
 	
 		$("#dMessageNoDB").hide();
 		$("#divUlModList").show();
@@ -835,19 +931,13 @@ $(document).on("pagecreate", "#IndexPage", function()
 	}
 });
 
-function Mensage( texto )
+$(document).on("pagecreate", "#PageBuilder", function ()
 {
-	/*$("#loadingAJAX").show();
-	$("#ajaxgif").hide();*/
-	new Messi(texto, 
-	{
-		title: 'Kannel Mobil', 
-		width: (window.innerWidth - 25),
-		callback: function(val)
-		{
-			alert(val);
-			$("#loadingAJAX").hide();
-			$("#ajaxgif").show();
-		}
-	});
-}
+    $("#btnVC_Atras").click(function ()
+    {
+        $("#PageBuilder_Lista").show();
+        $("#PageBuilder_From").hide();
+        $("#btnVC_Atras").hide();
+    });
+});
+

@@ -10,15 +10,18 @@
     <link rel="stylesheet" href="jquery-mobile/styles/jquery.mobile.custom.theme.min.css" />
     <link rel="stylesheet" href="themes/Volcafe.min.css" />
 	<link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
+    
     <link href="styles/main.css" rel="stylesheet" />
     <link rel="stylesheet" href="jquery-mobile/styles/messi.min.css" />
     <link rel="stylesheet" href="css/index.css"/>
     
-    <script src="jquery-mobile/js/jquery-1.10.2.min.js" type="text/javascript"></script>
-    <script src="js/i18n/jquery.i18n.min.js" type="text/javascript"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.min.js" type="text/javascript"></script>
+    <!--<script src="jquery-mobile/js/jquery-1.10.2.min.js" type="text/javascript"></script>-->
+    <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js" type="text/javascript"></script>
+    <!--<script src="jquery-mobile/js/jquery.mobile.custom.min.js" type="text/javascript"></script>-->
+    <!--<script src="jquery-mobile/js/jquery.touchSwipe.min.js" type="text/javascript"></script>-->
+	<script src="js/i18n/jquery.i18n.min.js" type="text/javascript"></script>
     <script src="js/en-us.js" type="text/javascript"></script>
-    <script src="jquery-mobile/js/jquery.mobile.custom.min.js" type="text/javascript"></script>
-    <script src="jquery-mobile/js/jquery.touchSwipe.min.js" type="text/javascript"></script>
     <script src="jquery-mobile/js/messi.min.js" type="text/javascript"></script>
     <script src="js/LocalStorageDB.js" type="text/javascript"></script>
     <script src="js/index.js" type="text/javascript"></script>
@@ -110,7 +113,7 @@
             	<form>
                     <input id="filterTable-input" data-type="search">
                 </form>
-            	<table data-role="table" class="ui-responsive ui-shadow"  data-filter="true" data-input="#filterTable-input" id="FGrid_Tabla">
+            	<table data-role="table" class="ui-responsive" data-mode="reflow"  data-filter="true" data-input="#filterTable-input" id="FGrid_Tabla">
                 	<thead></thead>
                     <tbody></tbody>
                 </table>
@@ -121,10 +124,10 @@
     <div id="IndexPage" data-role="page" data-theme="a">
     	<div data-role="panel" id="pMenu"  data-display="overlay">
           <h2>Men&uacute;</h2>
-          <ul data-role="listview">
+          <ul data-role="listview" id="ulSideMenu">
           	<li><a href="#IndexPage" data-rel="close" id="btnDBDown">Descargar Base de Datos</a></li>
             <li><a class="messi-titlebox anim error" style="border-radius:0; font-size:17px; color:#FFFFFF" href="#IndexPage" data-rel="close" id="btnViewCat">"Drop Data Base"</a></li>
-            <li><a href="#IndexPage" data-rel="close" onClick="DataGrid('VC_PRODUCTOR', 55, 1, function (row) {return true});"></a></li>
+            <li><a href="#" data-rel="close" onClick="testEval()">Test Eval</a></li>
           </ul>
         </div>
         
@@ -163,21 +166,31 @@
     
     
     <div id="PageBuilder" data-role="page" data-theme="a">
+
+        <div data-role="panel" id="pMenu_PageBuilder" data-display="overlay">
+            <h2>Men&uacute;</h2>
+            <ul data-role="listview" id="ulSideMenu">
+                <li><a href="#IndexPage" data-rel="close" id="btnDBDown">Descargar Base de Datos</a></li>
+                <li><a class="messi-titlebox anim error" style="border-radius:0; font-size:17px; color:#FFFFFF" href="#IndexPage" data-rel="close" id="btnViewCat">"Drop Data Base"</a></li>
+                <li><a href="#" data-rel="close" onClick="testEval()">Test Eval</a></li>
+            </ul>
+        </div>
+
     	<div data-role="header" data-position="fixed">
-        	<button  class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-left" id="btnVC_Atras">Atras</button>
-            <a class="ui-btn ui-shadow ui-corner-all ui-icon-home ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-right" href="#IndexPage">Inicio</a>
+        	<button class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-left" id="btnVC_Atras">Atras</button>
+            <a class="ui-btn ui-shadow ui-corner-all ui-icon-home ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-right" href="#IndexPage" onClick="location.reload(); window.sessionStorage.removeItem('#RowID');">Inicio</a>
         	<h1 id="lHForma">Listado de Grupos</h1> <!-- Nombre de la forma-->
         </div>
         
         <div data-role="content" id="divContent">
         	<div id="PageBuilder_Lista" >
             	<form>
-                    <input id="filterTable-input" data-type="search">
+                    <input id="filterTable-inpu2t" data-type="search">
                 </form>
-            	<table data-role="table" class="ui-responsive ui-shadow"  data-mode="columntoggle" data-filter="true" data-input="#filterTable-input" id="PageBuilder_Tabla">
+            	<table data-role="table" data-mode="columntoggle" class="ui-responsive table-stroke" data-filter="true" data-input="#filterTable-inpu2t" id="PageBuilder_Tabla">
                 	<thead>
                     	<tr>
-                        	<th data-priority="0" >Ver...</th>
+                        	<th >Ver...</th>
                         </tr>
                     </thead>
                     <tbody>
