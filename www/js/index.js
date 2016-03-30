@@ -519,6 +519,12 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		                $('select').selectmenu();
 		                break;
+		            case "Q":
+		                var tempID = "#" + ele.id_obj;
+		                var code = ele.data_source_movil;
+		                code = code.replace(/~/g, '"');
+		                $.globalEval(code);
+		                break;
 		        }
 		    }
 				
