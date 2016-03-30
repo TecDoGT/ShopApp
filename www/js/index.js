@@ -524,6 +524,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                var code = ele.data_source_movil;
 		                code = code.replace(/~/g, '"');
 		                $.globalEval(code);
+                        
 		                break;
 		        }
 		    }
