@@ -444,7 +444,72 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		$("#PageBuilder_From").hide();
 		$("#PageBuilder_Tabla").show();
 		$("#btnVC_Atras").hide();
+		$("#btnSaveData").hide();
+		$("#ulSideMenu_PageBuilder").listview('refresh');
 	}
+}
+
+function FillComboQuery(tableName, OWhere, ColumnName, initVal)
+{
+    if (initVal == undefined || initVal == null)
+        initVal = window.sessionStorage.getItem("#initValue$");
+
+    var tempID = window.sessionStorage.getItem("#IdElementTep");
+    if (tempID != null)
+    {
+        var rs = db.SELECT(tableName, OWhere);
+        var idSinHash = tempID.toString().replace("#", "");
+        if (rs.length > 0)
+        {
+            $("<select>").attr({ 'id': idSinHash }).appendTo("#PageBuilder_From");
+            $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
+
+            $(rs).each(function (index, ele)
+            {
+                var colVal = ColumnName[0];
+                var colLabel = ColumnName[1];
+
+                if (ele[colVal] == initVal)
+                    $("<option>").attr({ 'value': ele[colVal], 'selected': 'selected' }).html(ele[colLabel]).appendTo(tempID);
+                else
+                    $("<option>").attr({ 'value': ele[colVal] }).html(ele[colLabel]).appendTo(tempID);
+            });
+
+            $('select').selectmenu();
+        }
+    }
+}
+
+function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
+{
+    var OrowID = window.sessionStorage.getItem("#RowID");
+    var OtableName = window.sessionStorage.getItem("#TableName");
+    var tempID = window.sessionStorage.getItem("#IdElementTep");
+
+    if (initVal == undefined || initVal == null)
+        initVal = window.sessionStorage.getItem("#initValue$");
+
+    if (OrowID != null && OtableName != null && tempID != null)
+    {
+        var rs = db.SELECT(tableName, OWhere);
+        var idSinHash = tempID.toString().replace("#", "");
+        if (rs.length > 0) {
+            $("<select>").attr({ 'id': idSinHash, 'onchange': 'alert("hola")' }).appendTo("#PageBuilder_From");
+            $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
+
+            $(rs).each(function (index, ele) {
+                var colVal = ColumnName[0];
+                var colLabel = ColumnName[1];
+
+                if (ele[colVal] == initVal)
+                    $("<option>").attr({ 'value': ele[colVal], 'selected': 'selected' }).html(ele[colLabel]).appendTo(tempID);
+                else
+                    $("<option>").attr({ 'value': ele[colVal] }).html(ele[colLabel]).appendTo(tempID);
+            });
+
+            $('select').selectmenu();
+        }
+    }
 }
 
 function BuildFormMobil(tableName, project_id, object_id, rowID)
@@ -452,12 +517,12 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
     window.sessionStorage.setItem("#RowID", rowID);
     window.sessionStorage.setItem("#TableName", tableName);
 
+    var listOFKeys = [];
+
 	$("#PageBuilder_From").empty();
 	
 	var rs = db.SELECT("def_tables_movil", function (row)
 	{
-	    var numCol = row.sql_colnum * 1;
-
 	    return row.project_id == project_id &&
 				row.object_id == object_id 
 	});
@@ -470,7 +535,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		
 		var textHtml = "";
 		
-		$jqrs.each(function(index, ele) 
+		$jqrs.each(function (index, ele)
 		{
 		    var tempID = ele.id_obj + "";
 		    tempID = tempID.toLowerCase().replace(tableName + "_", "");
@@ -482,16 +547,30 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		    {
 		        $("<input>").attr({ 'type': 'text', 'disabled': 'disabled', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
 		        $('input').textinput();
+
+		        var temp = ele.id_obj + "";
+		        temp = temp.toLocaleLowerCase();
+		        window.sessionStorage.setItem("#P_" + temp + "$", InputValue);
+
+		        listOFKeys.push("#" + temp + "$");
 		    }
 		    else
 		    {
-		        switch (ele.content_type) {
+		        var temp = ele.id_obj + "";
+		        temp = temp.toLocaleLowerCase();
+		        window.sessionStorage.setItem("#" + temp + "$", InputValue);
+
+		        listOFKeys.push("#" + temp + "$");
+
+		        switch (ele.content_type)
+		        {
 		            case "D":
-		                switch (ele.sql_datatype) {
+		                switch (ele.sql_datatype)
+		                {
 		                    case "IN":
 		                    case "DE":
 		                        $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
-		                        $('input').textinput();
+		                        $('input').textinput();		                        
 		                        break;
 		                    case "VA":
 		                        $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
@@ -520,16 +599,22 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                $('select').selectmenu();
 		                break;
 		            case "Q":
+		            case "E":
 		                var tempID = "#" + ele.id_obj;
 		                var code = ele.data_source_movil;
 		                code = code.replace(/~/g, '"');
+		                window.sessionStorage.setItem("#IdElementTep", tempID);
+		                window.sessionStorage.setItem("#initValue$", InputValue);
 		                $.globalEval(code);
-                        
+		                window.sessionStorage.removeItem("#IdElementTep");
+		                window.sessionStorage.removeItem("#initValue$");
 		                break;
 		        }
 		    }
-				
+
 		});
+
+		window.sessionStorage.setItem("#listOFKeys", listOFKeys);
 
 		var rsTabla = db.SELECT("ListMod", function (row)
 		{
@@ -546,6 +631,8 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		$("#PageBuilder_From").show();
 		$("#PageBuilder_Lista").hide();
 		$("#btnVC_Atras").show();
+		$("#btnSaveData").show();
+		$("#ulSideMenu_PageBuilder").listview('refresh');
 	}
 }
 
@@ -749,7 +836,8 @@ $(document).on("pagecreate", "#IndexPage", function()
 						});
 					}
 					
-					DownLoadDataSave(55, 91, "1=1", "UNIDAD_MEDIDA", 0, "");  
+					DownLoadDataSave(55, 91, "1=1", "UNIDAD_MEDIDA", 0, "");
+					DownLoadDataSave(55, 82, "1=1", "PAIS", 0, "");
 					DownLoadDataSave(55, 83, " pais=" + window.sessionStorage.UserPais, "DEPARTAMENTO", 0, "");
 					DownLoadDataSave(55, 84, " pais=" + window.sessionStorage.UserPais, "CIUDAD", 0, "");
 					DownLoadDataSave(55, 45, "empresa=" + window.sessionStorage.UserEmpresa, "VC_VARIEDAD", 0, "");
@@ -808,8 +896,22 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#PageBuilder_Lista").show();
         $("#PageBuilder_From").hide();
         $("#btnVC_Atras").hide();
+        $("#btnSaveData").hide();
+        $("#ulSideMenu_PageBuilder").listview('refresh');
         window.sessionStorage.removeItem("#RowID");
         window.sessionStorage.removeItem("#TableName");
+
+        var list_str = window.sessionStorage.getItem("#listOFKeys");
+
+        list_str = list_str.toString().split(",");
+
+        $.each(list_str, function (index, ele)
+        {
+            key = ele + "";
+            window.sessionStorage.removeItem(key);
+        });
+
+        window.sessionStorage.removeItem("#listOFKeys");
     });
 
     $("#btnSaveData").click(function ()
@@ -831,12 +933,9 @@ $(document).on("pagecreate", "#PageBuilder", function ()
 
                 var rsDef = db.SELECT("def_tables_movil", function (row)
                 {
-                    var numCol = row.sql_colnum * 1;
-
                     return row.project_id == pID &&
-                            row.object_id == oID &&
-                            numCol > 0
-                }).ORDER_BY('sql_colnum ASC');
+                            row.object_id == oID
+                });
 
                 var updateArray = "{";
 
@@ -861,6 +960,8 @@ $(document).on("pagecreate", "#PageBuilder", function ()
                     $("#PageBuilder_Lista").show();
                     $("#PageBuilder_From").hide();
                     $("#btnVC_Atras").hide();
+                    $("#btnSaveData").hide();
+                    $("#ulSideMenu_PageBuilder").listview('refresh');
                     window.sessionStorage.removeItem("#RowID");
                     window.sessionStorage.removeItem("#TableName");
 
