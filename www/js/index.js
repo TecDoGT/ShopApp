@@ -69,10 +69,12 @@ function CreateDB(name)
 			content_type: '',
 			case_sensitive: '',
 			initial_value: '',
+		    label_eng: '',
 			list_labels: '',
 			list_values: '',
 			sql_colnum: 0,
-			sql_pk: ''
+			sql_pk: '',
+		    data_source_movil: ''
 		});
 		
 		db.CREATE("Object_Movil",
@@ -535,8 +537,13 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 				rowCont++;
 				txtBody += "<tr>";
 				var params = '"' + tableName + '", ' + proj_Id + ", " + obj_Id + ", " + element.id;
-				
-				txtBody += "<td><a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a></td>";
+
+				if (element.modifica == "1")
+				    txtBody += "<td class = 'regModificado'>";
+				else
+				    txtBody += "<td>";
+
+				txtBody += "<a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a></td>";
             	$jqRS.each(function(index, ele1) 
 				{
 					var temp = ele1.id_obj;
@@ -545,7 +552,8 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 					
 					var result = element[temp];
 					
-					//txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";
+            	    //txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";
+					
 					txtBody += "<td >"+ result +"</td>";					
 				});  
 				
@@ -587,6 +595,7 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 function BuildFormMobil(tableName, project_id, object_id, rowID)
 {
     window.sessionStorage.setItem("#RowID", rowID);
+    window.sessionStorage.setItem("#TableName", tableName);
 
 	$("#PageBuilder_From").empty();
 	
@@ -938,6 +947,68 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#PageBuilder_Lista").show();
         $("#PageBuilder_From").hide();
         $("#btnVC_Atras").hide();
+        window.sessionStorage.removeItem("#RowID");
+        window.sessionStorage.removeItem("#TableName");
+    });
+
+    $("#btnSaveData").click(function ()
+    {
+        var rowID = window.sessionStorage.getItem("#RowID");
+        var tableName = window.sessionStorage.getItem("#TableName");
+
+        if (rowID != null && tableName != null)
+        {
+            var rs = db.SELECT("ListMod", function (row)
+            {
+                return row.tablaName == tableName
+            });
+
+            if (rs.length > 0)
+            {
+                var pID = rs[0].project_id;
+                var oID = rs[0].object_id;
+
+                var rsDef = db.SELECT("def_tables_movil", function (row)
+                {
+                    var numCol = row.sql_colnum * 1;
+
+                    return row.project_id == pID &&
+                            row.object_id == oID &&
+                            numCol > 0
+                }).ORDER_BY('sql_colnum ASC');
+
+                var updateArray = "{";
+
+                if (rsDef.length > 0)
+                {
+                    $(rsDef).each(function (index, ele)
+                    {
+                        var ObjID = ele.id_obj;
+                        var colName = ObjID.toLowerCase().replace(tableName + "_", "");
+                        
+                        var InValue = $("#" + ObjID).val();
+
+                        updateArray += '"' + colName + '": "' + InValue + '", ';
+                    });
+
+                    updateArray += "}";
+
+                    updateArray = updateArray.replace(", }", ', "modifica": 1}');
+
+                    db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
+
+                    $("#PageBuilder_Lista").show();
+                    $("#PageBuilder_From").hide();
+                    $("#btnVC_Atras").hide();
+                    window.sessionStorage.removeItem("#RowID");
+                    window.sessionStorage.removeItem("#TableName");
+
+                    BuildMantenimineto(tableName, pID, oID);
+                }
+
+
+            }
+        }
     });
 });
 

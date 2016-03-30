@@ -1,4 +1,4 @@
-@charset "utf-8";
+﻿@charset "utf-8";
 /* CSS Document */
 
 .ui-icon-carreta:after {
@@ -62,5 +62,11 @@ th {
 
 tr:nth-child(even) {
     background: #999999;
+}
+
+.regModificado {
+    background-color: darkorange;
+    opacity: 0.6;
+    filter: alpha(opacity=60);
 }
 
