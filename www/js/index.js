@@ -28,7 +28,7 @@ $(document).ready(function(e)
 		$("#btnTraslate")._t("English");
 	});
 	
-	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData", "#msgDropDB"];
+	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData", "#msgDropDB", "#msgSendData"];
 		
 	$("#loadingAJAX").hide();
 	 
@@ -268,6 +268,51 @@ function DropDataBase(name)
 		
 		RefreshIndex();
 	}
+}
+
+function SendData2DB()
+{
+    var rs = db.SELECT("ListMod", { sinc: 1, neadForm: 1 });
+    var ListTables = [];
+    if (rs.length > 0)
+    {
+        $(rs).each(function (index, ele)
+        {
+            var rsData = db.SELECT(ele.tablaName, { modifica: 1, sinc: 0 });
+            var TempData = [];
+
+            if (rsData.length > 0)
+            {
+                $(rsData).each(function (i, e)
+                {
+                    delete e.id;
+                    delete e.modifica;
+                    delete e.sinc;
+
+                    TempData.push(e);
+                });
+            }
+
+            var info =  {
+                            "tablaName": ele.tablaName,
+                            "project_id": ele.project_id,
+                            "object_id": ele.object_id,
+                            "data": TempData
+                        };
+
+            ListTables.push(info);
+        });
+        var strListTables = JSON.stringify(ListTables);
+
+        var playload = { "cmd": "SendDataFormMovil", "Data": ListTables };
+
+        $.post("http://200.30.150.165:8080/webservidor2/mediador.php", playload,
+            function (data)
+            {
+                Mensage(data);
+            })
+            .fail(function () { console.log("error"); });
+    }
 }
 
 function testEval ()
@@ -725,8 +770,10 @@ function RefreshIndex()
 {
 	$("#dMessageNoDB").hide();
 	$("#divUlModList").show();
-	$("#btnViewCat").show();		
+	$("#btnViewCat").show();
+	$("#btnUpdateData").show();
 	$("#dMessageBDDone").hide();
+	$("#btnDBDown").hide();
 			
 	var rsDos = db.SELECT("Object_Det_Movil", function (row) 
 	{
@@ -787,8 +834,9 @@ function RefreshIndex()
 	{
 		$("#dMessageNoDB").show();
 		$("#divUlModList").hide();
-		
+		$("#btnDBDown").show();
 		$("#btnViewCat").hide();
+		$("#btnUpdateData").hide();
 	}
 }
 
@@ -805,6 +853,7 @@ $(document).on("pagecreate", "#IndexPage", function()
 		$("#dMessageNoDB").hide();
 		$("#divUlModList").show();
 		$("#btnViewCat").show();
+		$("#btnUpdateData").show();
 		$("#dMessageBDDone").hide();
 		
 		$("#btnDBDown").click(function(e) 
@@ -855,7 +904,30 @@ $(document).on("pagecreate", "#IndexPage", function()
 		$("#btnLoadModules").click(function(e) 
 		{
          	RefreshIndex();   
-        });
+		});
+
+		$("#btnUpdateData").click(function (e)
+		{
+		    var txtMsg = $("#msgSendData").text();
+
+		    new Messi(txtMsg,
+				{
+				    title: 'Kannel Mobil',
+				    titleClass: 'anim success',
+				    buttons:
+						[
+							{ id: 0, label: 'OK', val: 'Y' },
+							{ id: 1, label: 'Cancel', val: 'C' }
+						],
+				    modal: true,
+				    width: (window.innerWidth - 25),
+				    callback: function (val)
+				    {
+				        if (val == 'Y')
+				            SendData2DB();
+				    }
+				});
+		});
 		
 		$("#btnViewCat").click(function (e)
 		{
@@ -956,6 +1028,9 @@ $(document).on("pagecreate", "#PageBuilder", function ()
                     updateArray = updateArray.replace(", }", ', "modifica": 1}');
 
                     db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
+
+                    var IdListMod = rs[0].id;
+                    db.UPDATE("ListMod", { sinc: 1 }, {id: IdListMod});
 
                     $("#PageBuilder_Lista").show();
                     $("#PageBuilder_From").hide();
