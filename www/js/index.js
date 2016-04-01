@@ -937,8 +937,6 @@ $(document).on("pagecreate", "#IndexPage", function()
 					db.INSERT_INTO("Object_Det_Movil", data.ObjDetServer);
 					
 					var rs = db.SELECT("Object_Movil");
-
-					//maxTrans = maxTrans + rs.length;
 				
 					if (rs.length > 0)
 					{
