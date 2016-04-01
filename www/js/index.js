@@ -1,6 +1,7 @@
 var db;
 var uriServer = "http://200.30.150.165:8080/webservidor2/mediador.php";
 var maxTrans = 0;
+var DownCount = 0;
 //window.screen.unlockOrientation();
 $(document).ready(function(e) 
 {
@@ -192,6 +193,8 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 			
 				db.CREATE(TableName, objdefData);
 
+				maxTrans++;
+
 				$.get("http://200.30.150.165:8080/webservidor2/mediador.php", 
 				{
 					"cmd"		: "xmlData",
@@ -234,12 +237,23 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle, project_id: Project_Id, object_id: Object_Id}]);				
 					$("#dMessageBDDone").show();
 
-					if (maxTrans == 0)
+					$("#AJAXLoadLabel").text("Descarga... " + DownCount + " de " + maxTrans);
+
+					if (maxTrans == DownCount)
 					    $("#loadingAJAX").hide();
 					else
-					    maxTrans--;
+					    DownCount++;
 
-				},"xml");
+				}, "xml")
+			    .fail(function ()
+			    {
+			        $("#AJAXLoadLabel").text("Descarga... " + DownCount + " de " + maxTrans);
+
+			        if (maxTrans == DownCount)
+			            $("#loadingAJAX").hide();
+			        else
+			            DownCount++;
+			    });
 				$("#dMessageNoDB").hide();
 			},"xml");
 		}
@@ -917,14 +931,14 @@ $(document).on("pagecreate", "#IndexPage", function()
 				{
 				    $("#loadingAJAX").show();
 
-				    maxTrans = 7;
+				    maxTrans = 0;
 
 					db.INSERT_INTO("Object_Movil", data.ObjServer);
 					db.INSERT_INTO("Object_Det_Movil", data.ObjDetServer);
 					
 					var rs = db.SELECT("Object_Movil");
 
-					maxTrans = maxTrans + rs.length;
+					//maxTrans = maxTrans + rs.length;
 				
 					if (rs.length > 0)
 					{
@@ -937,12 +951,12 @@ $(document).on("pagecreate", "#IndexPage", function()
 						});
 					}
 					
-					DownLoadDataSave(55, 91, "1=1", "UNIDAD_MEDIDA", 0, "");
-					DownLoadDataSave(55, 82, "1=1", "PAIS", 0, "");
-					DownLoadDataSave(55, 83, " pais=" + window.sessionStorage.UserPais, "DEPARTAMENTO", 0, "");
-					DownLoadDataSave(55, 84, " pais=" + window.sessionStorage.UserPais, "CIUDAD", 0, "");
-					DownLoadDataSave(55, 45, "empresa=" + window.sessionStorage.UserEmpresa, "VC_VARIEDAD", 0, "");
-					DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, "");
+					DownLoadDataSave(55, 91, "1=1", "UNIDAD_MEDIDA", 0, ""); 
+					DownLoadDataSave(55, 82, "1=1", "PAIS", 0, ""); 
+					DownLoadDataSave(55, 83, " pais=" + window.sessionStorage.UserPais, "DEPARTAMENTO", 0, ""); 
+					DownLoadDataSave(55, 84, " pais=" + window.sessionStorage.UserPais, "CIUDAD", 0, ""); 
+					DownLoadDataSave(55, 45, "empresa=" + window.sessionStorage.UserEmpresa, "VC_VARIEDAD", 0, ""); 
+					DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, ""); 
 					DownLoadDataSave(55, 100, "1=1", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 				},"json");
 
