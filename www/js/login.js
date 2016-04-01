@@ -69,6 +69,7 @@ function ValEntrada ()
 					window.sessionStorage.UserEmpresa = data.usrEmpresa;
 					window.sessionStorage.UserName = data.nombreUser;
 					window.sessionStorage.UserPais = data.usrPais;
+					window.sessionStorage.UserPromotor = data.promotor;
 					
 					var rs = db.SELECT("movil_User", function (row)
 					{
@@ -125,6 +126,7 @@ function ValEntrada ()
 					window.sessionStorage.UserLogin = rs[0].userName;
 					window.sessionStorage.UserEmpresa = rs[0].Empresa;
 					window.sessionStorage.UserPais = rs[0].userPais;
+					window.sessionStorage.UserPromotor = rs[0].userPromotor;
 					var txtMsg = $("#tLogIn").text();
 					new Messi(txtMsg, 
 						{

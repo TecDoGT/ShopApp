@@ -66,7 +66,13 @@ tr:nth-child(even) {
 
 .regModificado {
     background-color: darkorange;
-    opacity: 0.6;
-    filter: alpha(opacity=60);
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+}
+
+.regMod-and-sinc {
+    background-color: blue;
+    opacity: 0.5;
+    filter: alpha(opacity=50);
 }
 
