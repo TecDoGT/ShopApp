@@ -237,22 +237,18 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle, project_id: Project_Id, object_id: Object_Id}]);				
 					$("#dMessageBDDone").show();
 
-					$("#AJAXLoadLabel").text("Descarga... " + DownCount + " de " + maxTrans);
+					$("#AJAXLoadLabel").text("Descarga... " + (++DownCount) + " de " + maxTrans);
 
 					if (maxTrans == DownCount)
-					    $("#loadingAJAX").hide();
-					else
-					    DownCount++;
+					    $("#loadingAJAX").delay(2000).slideUp(500);
 
 				}, "xml")
 			    .fail(function ()
 			    {
-			        $("#AJAXLoadLabel").text("Descarga... " + DownCount + " de " + maxTrans);
+			        $("#AJAXLoadLabel").text("Descarga... " + (++DownCount) + " de " + maxTrans);
 
 			        if (maxTrans == DownCount)
-			            $("#loadingAJAX").hide();
-			        else
-			            DownCount++;
+			            $("#loadingAJAX").delay(2000).slideUp(500);
 			    });
 				$("#dMessageNoDB").hide();
 			},"xml");
@@ -932,6 +928,7 @@ $(document).on("pagecreate", "#IndexPage", function()
 				    $("#loadingAJAX").show();
 
 				    maxTrans = 0;
+				    DownCount = 0;
 
 					db.INSERT_INTO("Object_Movil", data.ObjServer);
 					db.INSERT_INTO("Object_Det_Movil", data.ObjDetServer);
@@ -956,6 +953,10 @@ $(document).on("pagecreate", "#IndexPage", function()
 					DownLoadDataSave(55, 45, "empresa=" + window.sessionStorage.UserEmpresa, "VC_VARIEDAD", 0, ""); 
 					DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, ""); 
 					DownLoadDataSave(55, 100, "1=1", "VC_ACTIVIDAD_PROMOTOR", 0, "");
+
+					while(maxTrans )
+					{
+					}
 				},"json");
 
 			}
