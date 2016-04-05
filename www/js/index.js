@@ -2,6 +2,7 @@ var db;
 var uriServer = "http://200.30.150.165:8080/webservidor2/mediador.php";
 var maxTrans = 0;
 var DownCount = 0;
+var failTablesList = "";
 //window.screen.unlockOrientation();
 $(document).ready(function(e) 
 {
@@ -30,7 +31,7 @@ $(document).ready(function(e)
 		$("#btnTraslate")._t("English");
 	});
 	
-	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData", "#msgDropDB", "#msgSendData", "#msgDBSincOK"];
+	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData", "#msgDropDB", "#msgSendData", "#msgDBSincOK", "#msgErrortabel"];
 		
 	$("#loadingAJAX").hide();
 	 
@@ -240,15 +241,73 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					$("#AJAXLoadLabel").text("Descarga... " + (++DownCount) + " de " + maxTrans);
 
 					if (maxTrans == DownCount)
-					    $("#loadingAJAX").delay(2000).slideUp(500);
+					{
+					    if (failTablesList.length > 0) {
+					        failTablesList += "#f$";
+					        failTablesList = failTablesList.replace(", #f$", "");
+
+					        var txtMsg = $("#msgErrortabel").text() + failTablesList + "]";
+					        new Messi(txtMsg,
+                            {
+                                title: 'Kannel Mobil',
+                                titleClass: 'anim error',
+                                buttons:
+                                    [
+                                        { id: 0, label: 'OK', val: 'Y' }
+                                    ],
+                                modal: true,
+                                width: (window.innerWidth - 25),
+                                callback: function (val) {
+                                    if (val == 'Y') {
+                                        $("#loadingAJAX").delay(2000).slideUp(500);
+                                        failTablesList = "";
+                                    }
+                                }
+                            });
+					    }
+					    else
+					        $("#loadingAJAX").delay(2000).slideUp(500);
+					}
 
 				}, "xml")
 			    .fail(function ()
 			    {
 			        $("#AJAXLoadLabel").text("Descarga... " + (++DownCount) + " de " + maxTrans);
 
+			        failTablesList += TableName + ", ";
+
 			        if (maxTrans == DownCount)
-			            $("#loadingAJAX").delay(2000).slideUp(500);
+			        {
+			            if (failTablesList.length > 0)
+			            {
+			                failTablesList += "#f$";
+			                failTablesList = failTablesList.replace(", #f$", "");
+
+			                var txtMsg = $("#msgErrortabel").text();
+			                new Messi(txtMsg,
+                            {
+                                title: 'Kannel Mobil',
+                                titleClass: 'anim error',
+                                buttons:
+                                    [
+                                        { id: 0, label: 'OK', val: 'Y' }
+                                    ],
+                                modal: true,
+                                width: (window.innerWidth - 25),
+                                callback: function (val)
+                                {
+                                    if (val == 'Y')
+                                    {
+                                        $("#loadingAJAX").delay(2000).slideUp(500);
+                                        failTablesList = "";
+                                    }
+                                }
+                            });
+			            }
+			            else
+			                $("#loadingAJAX").delay(2000).slideUp(500);
+			            
+			        }
 			    });
 				$("#dMessageNoDB").hide();
 			},"xml");
@@ -1033,7 +1092,9 @@ function RemoveSessionVar()
 
     var list_str = window.sessionStorage.getItem("#listOFKeys");
 
-    list_str = list_str.toString().split(",");
+    list_str = list_str + "";
+
+    list_str = list_str.split(",");
 
     $.each(list_str, function (index, ele) {
         key = ele + "";
