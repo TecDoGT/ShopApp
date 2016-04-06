@@ -1234,7 +1234,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
                     window.sessionStorage.removeItem("#RowID");
                     window.sessionStorage.removeItem("#TableName");
 
-                    location.reload();
+                    //location.reload();
 
                     BuildMantenimineto(tableName, pID, oID);
                 }
