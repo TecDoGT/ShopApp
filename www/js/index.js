@@ -3,43 +3,48 @@ var uriServer = "http://200.30.150.165:8080/webservidor2/mediador.php";
 var maxTrans = 0;
 var DownCount = 0;
 var failTablesList = "";
-//window.screen.unlockOrientation();
-$(document).ready(function(e) 
-{
-	
-	if (window.localStorage.getItem("LocalStorageDB-KannelMovil-::tables::") == undefined)
-	{
-		CreateDB("KannelMovil");
-	}
-	else
-	{
-		db = new LocalStorageDB("KannelMovil");
-	}
-	
-	$("#loadingAJAX").width(window.innerWidth);
-	$("#loadingAJAX").height(window.innerHeight);
-	 
-	$("#ajaxgif").css(
-	{ 
-		top: ((window.innerHeight / 2) - 80),
-		left: ((window.innerWidth / 2) - 40) 
-	});
-		
-	$("#btnTraslate").click(function (event)
-	{
-		$("#tInicio")._t("Example 3");
-		$("#btnTraslate")._t("English");
-	});
-	
-	var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData", "#msgDropDB", "#msgSendData", "#msgDBSincOK", "#msgErrortabel"];
-		
-	$("#loadingAJAX").hide();
-	 
-	$.each(listaOb, function (index, val )
-	{
-		$(val).hide();
-	});  
-});
+
+var onSuccess = function (position) {
+
+    var GPSLong = position.coords.longitude;
+    var GPSLat = position.coords.latitude;
+    var GPSAlti = position.coords.altitude;
+
+    Mensage('Latitude: ' + GPSLat + '\n' +
+          'Longitude: ' + GPSLong + '\n' +
+          'Altitude: ' + GPSAlti + '\n');
+
+    if (GPSLat != null)
+    {
+        window.sessionStorage.setItem("#vc_finca_latitud$", GPSLat);
+    }
+
+    if (GPSLong != null)
+    {
+        window.sessionStorage.setItem("#vc_finca_longitud$", GPSLong);
+    }
+
+    if (GPSAlti != null)
+    {
+        window.sessionStorage.setItem("#vc_finca_altitud$", GPSAlti);
+    }
+
+
+    
+    /*+
+          'Accuracy: ' + position.coords.accuracy + '\n' +
+          'Altitude Accuracy: ' + position.coords.altitudeAccuracy + '\n' +
+          'Heading: ' + position.coords.heading + '\n' +
+          'Speed: ' + position.coords.speed + '\n' +
+          'Timestamp: ' + position.timestamp + '\n'*/
+
+    RefreshFormMobil();
+};
+
+function onError(error) {
+    Mensage('code: ' + error.code + '\n' +
+          'message: ' + error.message + '\n');
+}
 
 function Mensage(texto) {
     /*$("#loadingAJAX").show();
@@ -48,6 +53,7 @@ function Mensage(texto) {
 	{
 	    title: 'Kannel Mobil',
 	    width: (window.innerWidth - 25),
+        modal: true,
 	    callback: function (val) {
 	        alert(val);
 	        $("#loadingAJAX").hide();
@@ -663,6 +669,31 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
     }
 }
 
+function RefreshFormMobil()
+{
+    var list_str = window.sessionStorage.getItem("#listOFKeys");
+
+    list_str = list_str + "";
+
+    list_str = list_str.split(",");
+
+    var TableName = window.sessionStorage.getItem("#TableName");
+    var rowID = window.sessionStorage.getItem("#RowID");
+
+    $.each(list_str, function (i, e)
+    {
+        var key = e + "";
+        var inputVal = window.sessionStorage.getItem(key);
+
+        key = key.replace("P_", "");
+        key = key.replace("$", "");
+
+        key = key.toUpperCase();
+
+        $(key).val(inputVal);
+    });
+}
+
 function BuildFormMobil(tableName, project_id, object_id, rowID)
 {
     window.sessionStorage.setItem("#RowID", rowID);
@@ -703,7 +734,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		        temp = temp.toLocaleLowerCase();
 		        window.sessionStorage.setItem("#P_" + temp + "$", InputValue);
 
-		        listOFKeys.push("#" + temp + "$");
+		        listOFKeys.push("#P_" + temp + "$");
 		    }
 		    else
 		    {
@@ -790,60 +821,24 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 	}
 }
 
-$(document).on("pagecreate", "#GridCatalog", function ()
+function RemoveSessionVar()
 {
-	$("#FBuscarCat").show();
-	$("#FGrid").hide();
-	
-	$("#btnFBuscar").click(function ()
-	{
-		var tableName = $("#tbFBuscar").val();
-		
-		var rs;
-		
-		try 
-		{
-			rs = db.SELECT(tableName);
-		
-			if (rs.length == 0)
-			{
-				var txtMsg = $("#lNoData").text();
-				new Messi(txtMsg, 
-						{
-							title: 'Kannel Mobil', 
-							titleClass: 'anim error', 
-							buttons: 
-								[
-									{
-										id: 0, 
-										label: 'Cerrar', 
-										val: 'X'
-									}
-								],
-							modal: true,
-							width: (window.innerWidth - 25)
-						});
-			}
-			else
-			{
-				$("#FGrid_Tabla").empty();
-				$("#FGrid_Tabla").append("<thead></thead><tbody></tbody>");
-				$("#FBuscarCat").hide();
-				$("#FGrid").show();
-				
-				$(rs).each(function(index, element) 
-				{
-					
-                    
-                });
-			}
-		}
-		catch (err)
-		{
-			Mensage(err.message);
-		}
-	});
-});
+    window.sessionStorage.removeItem("#RowID");
+    window.sessionStorage.removeItem("#TableName");
+
+    var list_str = window.sessionStorage.getItem("#listOFKeys");
+
+    list_str = list_str + "";
+
+    list_str = list_str.split(",");
+
+    $.each(list_str, function (index, ele) {
+        var key = ele + "";
+        window.sessionStorage.removeItem(key);
+    });
+
+    window.sessionStorage.removeItem("#listOFKeys");
+}
 
 function GROUP_BY ( data, col)
 {
@@ -948,6 +943,40 @@ function RefreshIndex()
 		$("#btnUpdateData").hide();
 	}
 }
+
+// on Create events 
+
+$(document).ready(function (e) {
+
+    if (window.localStorage.getItem("LocalStorageDB-KannelMovil-::tables::") == undefined) {
+        CreateDB("KannelMovil");
+    }
+    else {
+        db = new LocalStorageDB("KannelMovil");
+    }
+
+    $("#loadingAJAX").width(window.innerWidth);
+    $("#loadingAJAX").height(window.innerHeight);
+
+    $("#ajaxgif").css(
+	{
+	    top: ((window.innerHeight / 2) - 80),
+	    left: ((window.innerWidth / 2) - 40)
+	});
+
+    $("#btnTraslate").click(function (event) {
+        $("#tInicio")._t("Example 3");
+        $("#btnTraslate")._t("English");
+    });
+
+    var listaOb = ["#Texto1", "#tErrorLogin", "#tLogIn", "#tNoInternet", "#lLoading", "#lNoData", "#msgDropDB", "#msgSendData", "#msgDBSincOK", "#msgErrortabel"];
+
+    $("#loadingAJAX").hide();
+
+    $.each(listaOb, function (index, val) {
+        $(val).hide();
+    });
+});
 
 $(document).on("pagecreate", "#IndexPage", function() 
 {
@@ -1085,24 +1114,53 @@ $(document).on("pagecreate", "#IndexPage", function()
 	}
 });
 
-function RemoveSessionVar()
-{
-    window.sessionStorage.removeItem("#RowID");
-    window.sessionStorage.removeItem("#TableName");
+$(document).on("pagecreate", "#GridCatalog", function () {
+    $("#FBuscarCat").show();
+    $("#FGrid").hide();
 
-    var list_str = window.sessionStorage.getItem("#listOFKeys");
+    $("#btnFBuscar").click(function () {
+        var tableName = $("#tbFBuscar").val();
 
-    list_str = list_str + "";
+        var rs;
 
-    list_str = list_str.split(",");
+        try {
+            rs = db.SELECT(tableName);
 
-    $.each(list_str, function (index, ele) {
-        key = ele + "";
-        window.sessionStorage.removeItem(key);
+            if (rs.length == 0) {
+                var txtMsg = $("#lNoData").text();
+                new Messi(txtMsg,
+						{
+						    title: 'Kannel Mobil',
+						    titleClass: 'anim error',
+						    buttons:
+								[
+									{
+									    id: 0,
+									    label: 'Cerrar',
+									    val: 'X'
+									}
+								],
+						    modal: true,
+						    width: (window.innerWidth - 25)
+						});
+            }
+            else {
+                $("#FGrid_Tabla").empty();
+                $("#FGrid_Tabla").append("<thead></thead><tbody></tbody>");
+                $("#FBuscarCat").hide();
+                $("#FGrid").show();
+
+                $(rs).each(function (index, element) {
+
+
+                });
+            }
+        }
+        catch (err) {
+            Mensage(err.message);
+        }
     });
-
-    window.sessionStorage.removeItem("#listOFKeys");
-}
+});
 
 $(document).on("pagecreate", "#PageBuilder", function ()
 {
@@ -1114,6 +1172,12 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#btnSaveData").hide();
         $("#btnGeoPos").hide();
         RemoveSessionVar();
+    });
+
+
+    $("#btnGeoPos").click(function (e)
+    {
+        navigator.geolocation.getCurrentPosition(onSuccess, onError);
     });
 
     $("#btnSaveData").click(function ()
