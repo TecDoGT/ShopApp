@@ -94,7 +94,9 @@ function CreateDB(name)
 			movil_proj: 0,
 			movil_obj: 0,
 			tableName: '',
-			formName: ''
+			formName: '',
+			obj_order: 0,
+		    obj_type: ''
 		});
 		
 		db.CREATE("Object_Det_Movil",
@@ -119,7 +121,18 @@ function CreateDB(name)
 		    userPromotor: ''
 		});
 		
- 		db.CREATE ("ListMod", {id: 0, tablaName: '', neadForm: 0, formTitle: '', sinc: 0, project_id: 0, object_id: 0, padre: 0});
+		db.CREATE("ListMod",
+        {
+            id: 0,
+            tablaName: '',
+            neadForm: 0,
+            formTitle: '',
+            sinc: 0,
+            project_id: 0,
+            object_id: 0,
+            padre: 0,
+            obj_order: 0
+        });
 }
 
 function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, PageTitle)
@@ -137,10 +150,11 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 		{
 			$.post("http://200.30.150.165:8080/webservidor2/mediador.php",
 			{
-				"cmd"		: "xmlDef",
-				"Project"	: Project_Id,
-				"Object"	: Object_Id,
-				"Where"		: ""
+			    "cmd": "xmlDef",
+			    "Project": Project_Id,
+			    "Object": Object_Id,
+			    "Where": strWhere,
+			    "Usr": window.sessionStorage.getItem("UserLogin")
 			},
 			function (data)
 			{
@@ -706,6 +720,21 @@ function RefreshFormMobil()
     });
 }
 
+function saveTemVal(idName, DataType)
+{
+    if (DataType == "IN")
+    {
+        $(idName).val($(idName).val().replace(/[^\d].+/, ""));
+    }
+
+    var tempVal = $(idName).val();
+
+    idName = idName + "$";
+    idName = idName.toLowerCase();
+
+    window.sessionStorage.setItem(idName, tempVal);
+}
+
 function BuildFormMobil(tableName, project_id, object_id, rowID)
 {
     window.sessionStorage.setItem("#RowID", rowID);
@@ -763,18 +792,18 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                {
 		                    case "IN":
 		                    case "DE":
-		                        $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
+		                        $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
 		                        $('input').textinput();		                        
 		                        break;
 		                    case "VA":
-		                        $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
+		                        $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
 		                        $('input').textinput();
 		                        break;
 		                }
 		                break;
 		            case "B":
 		                var tempID = "#" + ele.id_obj;
-		                $("<select>").attr({ 'id': ele.id_obj }).appendTo("#PageBuilder_From");
+		                $("<select>").attr({ 'id': ele.id_obj, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
 		                $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
 
 		                var listL_S = ele.list_labels + "";
@@ -916,14 +945,14 @@ function RefreshIndex()
 			var res = objID.indexOf(idStr);
 			
 			return  row.project_id == 58 && 
-					res > -1;
+					row.obj_type == "M";
 		});
 		
 		if (rsMods.length > 0)
 		{
 			$.each(rsMods, function (index, ele)
 			{
-				db.UPDATE("ListMod", {padre: 1}, {project_id: ele.movil_proj, object_id: ele.movil_obj});
+				db.UPDATE("ListMod", {padre: 1, obj_order: ele.obj_order}, {project_id: ele.movil_proj, object_id: ele.movil_obj});
 			});
 		}
 		
@@ -933,7 +962,7 @@ function RefreshIndex()
 	{
 		return  row.neadForm == 1 && 
 				row.padre == 1 
-	});
+	}).ORDER_BY('obj_order');
 	
 	if (rs.length > 0)
 	{
@@ -1055,9 +1084,7 @@ $(document).on("pagecreate", "#IndexPage", function()
 					DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, ""); 
 					DownLoadDataSave(55, 100, "1=1", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 
-					while(maxTrans )
-					{
-					}
+					
 				},"json");
 
 			}
@@ -1185,6 +1212,8 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#btnSaveData").hide();
         $("#btnGeoPos").hide();
         $("#btnNewReg").show();
+        window.sessionStorage.removeItem("#RowID");
+        window.sessionStorage.removeItem("#TableName");
         RemoveSessionVar();
     });
 
@@ -1240,18 +1269,18 @@ $(document).on("pagecreate", "#PageBuilder", function ()
                     var IdListMod = rs[0].id;
                     db.UPDATE("ListMod", { sinc: 1 }, {id: IdListMod});
 
-                    $("#PageBuilder_Lista").show();
+                    /*$("#PageBuilder_Lista").show();
                     $("#PageBuilder_From").hide();
                     $("#btnVC_Atras").hide();
                     $("#btnSaveData").hide();
                     $("#btnGeoPos").hide();
                     $("#btnNewReg").show();
                     window.sessionStorage.removeItem("#RowID");
-                    window.sessionStorage.removeItem("#TableName");
+                    window.sessionStorage.removeItem("#TableName");*/
 
                     //location.reload();
 
-                    BuildMantenimineto(tableName, pID, oID);
+                    //BuildMantenimineto(tableName, pID, oID);
                 }
 
 
