@@ -347,6 +347,9 @@ function DropDataBase(name)
 
 function SendData2DB()
 {
+    $("#loadingAJAX").show();
+    $("#AJAXLoadLabel").text("");
+
     var rs = db.SELECT("ListMod", { sinc: 1, neadForm: 1 });
     var ListTables = [];
     if (rs.length > 0)
@@ -376,8 +379,9 @@ function SendData2DB()
 
             ListTables.push(info);
         });
-        
-        var playload = { "cmd": "SendDataFormMovil", "Data": ListTables };
+        var empresaVal = window.sessionStorage.getItem("UserEmpresa");
+        var usrVal = window.sessionStorage.getItem("UserLogin");
+        var playload = { "User": usrVal, "Empresa": empresaVal, "cmd": "SendDataFormMovil", "Data": ListTables };
 
         $.post("http://200.30.150.165:8080/webservidor2/mediador.php", playload,
         function (data)
@@ -404,10 +408,17 @@ function SendData2DB()
             strTablas = strTablas.replace(", #fin$", " ]");
 
             Mensage(strTablas);
+
+            $("#loadingAJAX").hide();
         }, "json")
         .fail(function (qXHR, textStatus, errorThrown)
         {
             Mensage(qXHR.responseText);
+            console.log(qXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+
+            $("#loadingAJAX").hide();
         });
     }
 }
@@ -602,6 +613,7 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		$("#PageBuilder_Tabla").show();
 		$("#btnVC_Atras").hide();
 		$("#btnSaveData").hide();
+		$("#btnNewReg").show();
 		$("#btnGeoPos").hide();
 	}
 }
@@ -818,6 +830,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		$("#PageBuilder_Lista").hide();
 		$("#btnVC_Atras").show();
 		$("#btnSaveData").show();
+		$("#btnNewReg").hide();
 	}
 }
 
@@ -1171,6 +1184,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#btnVC_Atras").hide();
         $("#btnSaveData").hide();
         $("#btnGeoPos").hide();
+        $("#btnNewReg").show();
         RemoveSessionVar();
     });
 
@@ -1231,6 +1245,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
                     $("#btnVC_Atras").hide();
                     $("#btnSaveData").hide();
                     $("#btnGeoPos").hide();
+                    $("#btnNewReg").show();
                     window.sessionStorage.removeItem("#RowID");
                     window.sessionStorage.removeItem("#TableName");
 
