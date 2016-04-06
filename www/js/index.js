@@ -651,7 +651,7 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
         var rs = db.SELECT(tableName, OWhere);
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0) {
-            $("<select>").attr({ 'id': idSinHash, 'onchange': 'alert("hola")' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'onchange': 'RefreshFormMobil();' }).appendTo("#PageBuilder_From");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele) {
