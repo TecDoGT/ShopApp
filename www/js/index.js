@@ -708,11 +708,21 @@ function FillComboQuery(tableName, OWhere, ColumnName, initVal)
     }
 }
 
+function CQDRefreshForm(idObj, tableName, project_id, object_id, rowID)
+{
+    saveTemVal("#" + idObj, "");
+    $("#btnSaveData").trigger("click");
+    $("#btnVC_Atras").trigger("click");
+    BuildFormMobil(tableName, project_id, object_id, rowID);
+}
+
 function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
 {
     var OrowID = window.sessionStorage.getItem("#RowID");
     var OtableName = window.sessionStorage.getItem("#TableName");
     var tempID = window.sessionStorage.getItem("#IdElementTep");
+    var OPID = window.sessionStorage.getItem("#Project_id");
+    var OOID = window.sessionStorage.getItem("#Object_id");
 
     if (initVal == undefined || initVal == null)
         initVal = window.sessionStorage.getItem("#initValue$");
@@ -722,7 +732,7 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
         var rs = db.SELECT(tableName, OWhere);
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0) {
-            $("<select>").attr({ 'id': idSinHash, 'onchange': 'saveTemVal("#' + idSinHash + '", "");RefreshFormMobil();' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'onchange': 'CQDRefreshForm("' + idSinHash + '", "' + OtableName + '", ' + OPID + ', ' + OOID + ', ' + OrowID + ');' }).appendTo("#PageBuilder_From");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele) {
@@ -763,6 +773,8 @@ function RefreshFormMobil()
 
         $(key).val(inputVal);
     });
+
+    
 }
 
 function saveTemVal(idName, DataType)
@@ -784,6 +796,8 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 {
     window.sessionStorage.setItem("#RowID", rowID);
     window.sessionStorage.setItem("#TableName", tableName);
+    window.sessionStorage.setItem("#Project_id", project_id);
+    window.sessionStorage.setItem("#Object_id", object_id);
 
     var listOFKeys = [];
 
@@ -912,6 +926,8 @@ function RemoveSessionVar()
 {
     window.sessionStorage.removeItem("#RowID");
     window.sessionStorage.removeItem("#TableName");
+    window.sessionStorage.removeItem("#Project_id");
+    window.sessionStorage.removeItem("#Object_id");
 
     var list_str = window.sessionStorage.getItem("#listOFKeys");
 
@@ -1259,6 +1275,8 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#btnNewReg").show();
         window.sessionStorage.removeItem("#RowID");
         window.sessionStorage.removeItem("#TableName");
+        window.sessionStorage.removeItem("#Project_id");
+        window.sessionStorage.removeItem("#Object_id");
         RemoveSessionVar();
 
         var temptextOn = "window.location = '#IndexPage'; RemoveSessionVar(); location.reload();";
