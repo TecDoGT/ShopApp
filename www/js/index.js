@@ -221,7 +221,9 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					"cmd"		: "xmlData",
 					"Project"	: Project_Id,
 					"Object"	: Object_Id,
-					"Where"		: strWhere
+					"empresa": window.sessionStorage.getItem("UserEmpresa"),
+					"usrCode": window.sessionStorage.getItem("UserPromotor"),
+					"usrPais": window.sessionStorage.getItem("UserPais")
 				},
 				function (data)
 				{
@@ -450,6 +452,8 @@ function testEval ()
 
 function BuildMantenimineto(tableName, proj_Id, obj_Id)
 {
+    //window.location = "#PageBuilder";
+
 	var PK = GetPrimaryKey(tableName, proj_Id, obj_Id);
 	
 	var PKs = [];
@@ -483,6 +487,49 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	if (rsTabla.length != 0) {
 	    $("#lHForma").text(rsTabla[0].formTitle);
 	}
+	var PadrePid = 0;
+	var PadreOid = 0;
+
+	$("#ulSideMenu_PageBuilder").empty();
+
+	var temptextOn = "window.location = '#IndexPage'; RemoveSessionVar(); location.reload();";
+	$("#ulSideMenu_PageBuilder").append('<li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left" href="#IndexPage" onClick="' + temptextOn + '">Inicio</a></li>');
+	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" >Guardar</a></li>');
+	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>');
+	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left">Obtener GPS</a></li>');
+	var subMods = db.SELECT("Object_Movil", function (row)
+	{
+	    return row.movil_proj == proj_Id && 
+               row.movil_obj == obj_Id
+	});
+
+	if (subMods.length > 0)
+	{
+	    var DetSubMods = db.SELECT("Object_Det_Movil", function (row)
+	    {
+	        return row.project_id == subMods[0].project_id &&
+                   row.object_id == subMods[0].object_id
+	    });
+
+	    if (DetSubMods.length > 0)
+	    {
+	        $(DetSubMods).each(function (i, e)
+	        {
+	            var infoTablasub = db.SELECT("ListMod", { project_id: e.movil_proj, object_id: e.movil_obj });
+	            if (infoTablasub.length > 0)
+	            {
+	                var param = '"' + infoTablasub[0].tablaName + '", ' + e.movil_proj + ", " + e.movil_obj;
+	                $("#ulSideMenu_PageBuilder").append("<li><a href='#' onClick='RemoveSessionVar(); BuildMantenimineto(" + param + ");' data-rel='close' >" + e.movil_name + "</a></li>");
+	            }
+	        });
+	        
+	    }
+	}
+
+	$("#PageBuilder_Tabla").remove();
+	$('<table>').attr({ 'id': 'PageBuilder_Tabla', 'data-role': 'table', 'data-mode': 'columntoggle', 'class': 'ui-responsive table-stroke', 'data-filter': 'true', 'data-input': '#filterTable-inpu2t' }).appendTo("#PageBuilder_Lista");
+	$('<thead>').html('<tr><th >Ver...</th></tr>').appendTo("#PageBuilder_Tabla");
+	$('<tbody>').appendTo("#PageBuilder_Tabla");
 
 	DataGrid(tableName, proj_Id, obj_Id, JOwhere);
 }
@@ -521,8 +568,8 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 {
 	
 	//$("#PageBuilder_Tabla").trigger( "create" );
-	$("#vc_grupos_Tabla tbody").empty();
-	$("#vc_grupos_Tabla thead").empty();
+	/*$("#vc_grupos_Tabla tbody").empty();
+	$("#vc_grupos_Tabla thead").empty();*/
 	
 	
 	tableName = tableName.toLowerCase();
@@ -558,71 +605,69 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		var DataRs = db.SELECT(tableName, Owhere);
 		
 		if (DataRs.length > 0)
-		{	
-			var $jqDataRS = $(DataRs);
-			
-			var rowCont = 0;
-			var txtBody = "";
-			$jqDataRS.each(function(index, element) 
-			{
-				rowCont++;
-				txtBody += "<tr>";
-				var params = '"' + tableName + '", ' + proj_Id + ", " + obj_Id + ", " + element.id;
-
-				if (element.modifica == "1")
-				{
-                    if (element.sinc == "0") // Modificado, sin Acrulizar a la base de datos
-                        txtBody += "<td class = 'regModificado'>";
-                    else                     //Modificado, actulizado en la base de datos
-                        txtBody += "<td class = 'regMod-and-sinc'>";
-
-				}
-				else
-				    txtBody += "<td>";
-
-				txtBody += "<a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a></td>";
-            	$jqRS.each(function(index, ele1) 
-				{
-					var temp = ele1.id_obj;
-					temp = temp.toLowerCase();
-					temp = temp.replace (tableName + "_", "");
-					
-					var result = element[temp];
-					
-            	    //txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";
-					
-					txtBody += "<td >"+ result +"</td>";					
-				});  
-				
-				txtBody += "</tr>";
-            });
-			
-			
-				  
-			$("#PageBuilder_Tabla").table(
-			{
-			  create: function( event, ui ) 
-			  {
-				  $("#PageBuilder_Tabla tr:first").append(txtHtml);
-				  $("#PageBuilder_Tabla tbody").append(txtBody);
-				 
-				 // $("#PageBuilder_Tabla-popup-popup").css("background-color", "#d3d3d3");
-			  },
-			  columnPopupTheme: "a",
-			  refresh: null
-			});
-		
-			 
-			 $("#PageBuilder_Tabla").table("refresh");
-			 
-			
-		}
-		else
 		{
-			Mensage('no data');
+		    var $jqDataRS = $(DataRs);
+
+		    var rowCont = 0;
+		    var txtBody = "";
+		    $jqDataRS.each(function (index, element)
+		    {
+		        rowCont++;
+		        txtBody += "<tr>";
+		        var params = '"' + tableName + '", ' + proj_Id + ", " + obj_Id + ", " + element.id;
+
+		        if (element.modifica == "1")
+		        {
+		            if (element.sinc == "0") // Modificado, sin Acrulizar a la base de datos
+		                txtBody += "<td class = 'regModificado'>";
+		            else                     //Modificado, actulizado en la base de datos
+		                txtBody += "<td class = 'regMod-and-sinc'>";
+
+		        }
+		        else
+		            txtBody += "<td>";
+
+		        txtBody += "<a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a></td>";
+		        $jqRS.each(function (index, ele1)
+		        {
+		            var temp = ele1.id_obj;
+		            temp = temp.toLowerCase();
+		            temp = temp.replace(tableName + "_", "");
+
+		            var result = element[temp];
+
+		            //txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";
+
+		            txtBody += "<td >" + result + "</td>";
+		        });
+
+		        txtBody += "</tr>";
+		    });
+
+
+
+		    $("#PageBuilder_Tabla").table(
+			{
+			    create: function (event, ui)
+			    {
+			        $("#PageBuilder_Tabla tr:first").append(txtHtml);
+			        $("#PageBuilder_Tabla tbody").append(txtBody);
+			        // $("#PageBuilder_Tabla-popup-popup").css("background-color", "#d3d3d3");
+			    },
+			    columnPopupTheme: "a",
+			    refresh: null
+			});
+
+
+		    $("#PageBuilder_Tabla").table("refresh");
+
+
+		}
+		else {
+		    Mensage('no data');
 		}
 		
-		window.location = "#PageBuilder";
+		//window.location = "#PageBuilder";
 		$("#PageBuilder_From").hide();
 		$("#PageBuilder_Tabla").show();
 		$("#btnVC_Atras").hide();
@@ -1071,18 +1116,18 @@ $(document).on("pagecreate", "#IndexPage", function()
 						
 						$jqRS.each(function(index, ele) 
 						{
-						    var where = "  and productor in( select productor from sqladmin.v_vc_productores where empresa = " + window.sessionStorage.UserEmpresa + " and ( supervisor = " + window.sessionStorage.UserPromotor + " or jefe = " + window.sessionStorage.UserPromotor + " ))";
-						    DownLoadDataSave(ele.movil_proj, ele.movil_obj, "empresa=" + window.sessionStorage.UserEmpresa + where, ele.tableName, 1, ele.formName);
+						    
+						    DownLoadDataSave(ele.movil_proj, ele.movil_obj, "", ele.tableName, 1, ele.formName);
 						});
 					}
 					
-					DownLoadDataSave(55, 91, "1=1", "UNIDAD_MEDIDA", 0, ""); 
-					DownLoadDataSave(55, 82, "1=1", "PAIS", 0, ""); 
-					DownLoadDataSave(55, 83, " pais=" + window.sessionStorage.UserPais, "DEPARTAMENTO", 0, ""); 
-					DownLoadDataSave(55, 84, " pais=" + window.sessionStorage.UserPais, "CIUDAD", 0, ""); 
-					DownLoadDataSave(55, 45, "empresa=" + window.sessionStorage.UserEmpresa, "VC_VARIEDAD", 0, ""); 
-					DownLoadDataSave(55, 48, "1=1", "VC_CERTIFICACION", 0, ""); 
-					DownLoadDataSave(55, 100, "1=1", "VC_ACTIVIDAD_PROMOTOR", 0, "");
+					DownLoadDataSave(55, 91, "", "UNIDAD_MEDIDA", 0, ""); 
+					DownLoadDataSave(55, 82, "", "PAIS", 0, ""); 
+					DownLoadDataSave(55, 83, "", "DEPARTAMENTO", 0, ""); 
+					DownLoadDataSave(55, 84, "", "CIUDAD", 0, ""); 
+					DownLoadDataSave(55, 45, "", "VC_VARIEDAD", 0, ""); 
+					DownLoadDataSave(55, 48, "", "VC_CERTIFICACION", 0, ""); 
+					DownLoadDataSave(55, 100, "", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 
 					
 				},"json");
@@ -1215,6 +1260,12 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         window.sessionStorage.removeItem("#RowID");
         window.sessionStorage.removeItem("#TableName");
         RemoveSessionVar();
+
+        var temptextOn = "window.location = '#IndexPage'; RemoveSessionVar(); location.reload();";
+        $("#ulSideMenu_PageBuilder").append('<li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left" href="#IndexPage" onClick="' + temptextOn + '">Inicio</a></li>');
+        $("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" >Guardar</a></li>');
+        $("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>');
+        $("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left">Obtener GPS</a></li>');
     });
 
 
@@ -1262,7 +1313,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
 
                     updateArray += "}";
 
-                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
+                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0, }');
 
                     db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
 
