@@ -1308,12 +1308,15 @@ $(document).on("pagecreate", "#PageBuilder", function ()
                         
                         var InValue = $("#" + ObjID).val();
 
-                        updateArray += '"' + colName + '": "' + InValue + '", ';
+                        if (colName == "usuario")
+                            updateArray += '"usuario": "' + window.sessionStorage.getItem("UserLogin") + '", ';
+                        else
+                            updateArray += '"' + colName + '": "' + InValue + '", ';
                     });
 
                     updateArray += "}";
 
-                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0, }');
+                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
 
                     db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
 
