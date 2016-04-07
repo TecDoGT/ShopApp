@@ -689,7 +689,7 @@ function FillComboQuery(tableName, OWhere, ColumnName, initVal)
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0)
         {
-            $("<select>").attr({ 'id': idSinHash }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'onblur': 'saveTemVal("#' + idSinHash + '", "");' }).appendTo("#PageBuilder_From");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele)
@@ -722,7 +722,7 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
         var rs = db.SELECT(tableName, OWhere);
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0) {
-            $("<select>").attr({ 'id': idSinHash, 'onchange': 'RefreshFormMobil();' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'onchange': 'saveTemVal("#' + idSinHash + '", "");RefreshFormMobil();' }).appendTo("#PageBuilder_From");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele) {
