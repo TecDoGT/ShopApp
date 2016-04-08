@@ -450,10 +450,21 @@ function testEval ()
 	$.globalEval(stringFuntion);
 }
 
+function refreshGrid(tableName, proj_Id, obj_Id)
+{
+    //location.reload();
+    window.sessionStorage.setItem("#HijoKannel", "1");
+    window.location = "#IndexPage";
+    BuildMantenimineto(tableName, proj_Id, obj_Id);
+    window.location = "#PageBuilder";
+    window.sessionStorage.removeItem("#HijoKannel");
+    //alert("hola");
+}
+
 function BuildMantenimineto(tableName, proj_Id, obj_Id)
 {
     //window.location = "#PageBuilder";
-
+    var is_hijo = window.sessionStorage.getItem("#HijoKannel");
 	var PK = GetPrimaryKey(tableName, proj_Id, obj_Id);
 	
 	var PKs = [];
@@ -461,7 +472,16 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 		
 	$.each(PK, function (index, ele)
 	{
-     	var temp = window.sessionStorage.getItem(ele);
+	    var nombreCol = ele;
+
+	    if (is_hijo == "1")
+	    {
+	        var padreTable = window.sessionStorage.getItem("#TableName");
+	        nombreCol = "#P_" + padreTable + "_" + nombreCol + "$";
+	    }
+	    
+
+	    var temp = window.sessionStorage.getItem(nombreCol);
 		if (temp == null)
 		{
 			PKs.push(ele);
@@ -497,6 +517,9 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" >Guardar</a></li>');
 	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>');
 	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left">Obtener GPS</a></li>');
+
+	
+
 	var subMods = db.SELECT("Object_Movil", function (row)
 	{
 	    return row.movil_proj == proj_Id && 
@@ -519,19 +542,23 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	            if (infoTablasub.length > 0)
 	            {
 	                var param = '"' + infoTablasub[0].tablaName + '", ' + e.movil_proj + ", " + e.movil_obj;
-	                $("#ulSideMenu_PageBuilder").append("<li><a href='#' onClick='RemoveSessionVar(); BuildMantenimineto(" + param + ");' data-rel='close' >" + e.movil_name + "</a></li>");
+	                //window.location = "+'"#PageBuilder"'+"
+
+	                $("#ulSideMenu_PageBuilder").append("<li><a href='#' onClick='refreshGrid(" + param + ");' data-rel='close' >" + e.movil_name + "</a></li>");
 	            }
 	        });
+
+	        $("#ulSideMenu_PageBuilder").listview().listview("refresh");
 	        
 	    }
 	}
 
-	$("#PageBuilder_Tabla").remove();
-	$('<table>').attr({ 'id': 'PageBuilder_Tabla', 'data-role': 'table', 'data-mode': 'columntoggle', 'class': 'ui-responsive table-stroke', 'data-filter': 'true', 'data-input': '#filterTable-inpu2t' }).appendTo("#PageBuilder_Lista");
-	$('<thead>').html('<tr><th >Ver...</th></tr>').appendTo("#PageBuilder_Tabla");
-	$('<tbody>').appendTo("#PageBuilder_Tabla");
-
 	DataGrid(tableName, proj_Id, obj_Id, JOwhere);
+
+	if (is_hijo == "1")
+	{
+	    $("#btnVC_Atras").trigger("click");
+	}
 }
 
 function GetPrimaryKey(tableName, proj_Id, obj_Id)
@@ -566,10 +593,14 @@ function GetPrimaryKey(tableName, proj_Id, obj_Id)
 
 function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 {
-	
-	//$("#PageBuilder_Tabla").trigger( "create" );
-	/*$("#vc_grupos_Tabla tbody").empty();
-	$("#vc_grupos_Tabla thead").empty();*/
+
+    $("#PageBuilder_Lista").empty();
+    $('<form>').html('<input id="filterTable-inpu2t" data-type="search">').appendTo("#PageBuilder_Lista");
+    $('<table>').attr({ 'id': 'PageBuilder_Tabla', 'data-role': 'table', 'data-mode': 'columntoggle', 'class': 'ui-responsive table-stroke', 'data-filter': 'true', 'data-input': '#filterTable-inpu2t' }).appendTo("#PageBuilder_Lista");
+    $('<thead>').html('<tr><th >Ver...</th></tr>').appendTo("#PageBuilder_Tabla");
+    $('<tbody>').appendTo("#PageBuilder_Tabla");
+
+    $("#PageBuilder_Lista").trigger("create");
 	
 	
 	tableName = tableName.toLowerCase();
@@ -581,53 +612,52 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		return  row.project_id == proj_Id &&
 				row.object_id == obj_Id &&
 				numCol > 0
-	}).ORDER_BY( 'sql_colnum ASC' );
+	}).ORDER_BY('sql_colnum ASC');
 	
 	if (rs.length != 0)
 	{
 		var $jqRS = $(rs);
-		//var txtHtml = "<tr>";
-		var txtHtml = "";
 		$jqRS.each(function(index, ele1) 
 		{
-			if (ele1.sql_pk == 'P')
-				txtHtml += "<th data-priority='" + (index + 1) + "' >";
-			else		
-				txtHtml += "<th data-priority='" + (index + 1) + "'>";
-				
-			txtHtml += ele1.label + "</th>";
+		    $('<th>').attr({ 'data-priority': (index + 1) }).html(ele1.label).appendTo("#PageBuilder_Tabla tr:first");
 		});
-		
-		//txtHtml += "</tr>";
-		
-		
-		
-		var DataRs = db.SELECT(tableName, Owhere);
+				
+		var DataRs = db.SELECT(tableName, Owhere).LIMIT(500); // max Data to display
 		
 		if (DataRs.length > 0)
 		{
 		    var $jqDataRS = $(DataRs);
 
 		    var rowCont = 0;
-		    var txtBody = "";
 		    $jqDataRS.each(function (index, element)
 		    {
 		        rowCont++;
-		        txtBody += "<tr>";
+
+		        var tempID = "row_" + index;
+
+		        $('<tr>').attr({ 'id': tempID }).appendTo("#PageBuilder_Tabla tbody");
+
 		        var params = '"' + tableName + '", ' + proj_Id + ", " + obj_Id + ", " + element.id;
 
+		        var regClass = "";
 		        if (element.modifica == "1")
 		        {
 		            if (element.sinc == "0") // Modificado, sin Acrulizar a la base de datos
-		                txtBody += "<td class = 'regModificado'>";
+		                regClass = "regModificado";
 		            else                     //Modificado, actulizado en la base de datos
-		                txtBody += "<td class = 'regMod-and-sinc'>";
+		                regClass = "regMod-and-sinc";
 
 		        }
 		        else
-		            txtBody += "<td>";
+		            regClass = "regNone";
 
-		        txtBody += "<a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a></td>";
+		        tempID = "#" + tempID;
+
+		        $('<td>')
+                    .attr({ 'class': regClass })
+                    .html("<a class='btnVer ui-btn ui-shadow ui-corner-all ui-icon-action ui-btn-icon-notext ui-btn-a' data-transition='slide' href='#PageBuilder' onclick='BuildFormMobil(" + params + ")' >Ir.</a>")
+                    .appendTo(tempID);
+                
 		        $jqRS.each(function (index, ele1)
 		        {
 		            var temp = ele1.id_obj;
@@ -636,31 +666,22 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 
 		            var result = element[temp];
 
-		            //txtBody += "<td id='"+ele1.id_obj+"_row"+rowCont+"'>"+ result +"</td>";
-
-		            txtBody += "<td >" + result + "</td>";
+		            $('<td>')
+                        .html(result)
+                        .appendTo(tempID);
+		            
 		        });
 
-		        txtBody += "</tr>";
+		        
 		    });
 
-
-
 		    $("#PageBuilder_Tabla").table(
-			{
-			    create: function (event, ui)
-			    {
-			        $("#PageBuilder_Tabla tr:first").append(txtHtml);
-			        $("#PageBuilder_Tabla tbody").append(txtBody);
-			        // $("#PageBuilder_Tabla-popup-popup").css("background-color", "#d3d3d3");
-			    },
-			    columnPopupTheme: "a",
-			    refresh: null
-			});
-
+                {
+                    columnPopupTheme: "a",
+                    refresh: null
+                });
 
 		    $("#PageBuilder_Tabla").table("refresh");
-
 
 		}
 		else {

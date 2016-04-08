@@ -76,3 +76,7 @@ tr:nth-child(even) {
     filter: alpha(opacity=50);
 }
 
+.regNone {
+    background-color:transparent;
+}
+
