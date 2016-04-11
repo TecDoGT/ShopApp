@@ -80,3 +80,11 @@ tr:nth-child(even) {
     background-color:transparent;
 }
 
+.liHijosHide {
+    visibility:hidden;
+}
+
+.liHijosShow {
+    visibility:visible;
+}
+

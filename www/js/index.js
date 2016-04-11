@@ -452,13 +452,10 @@ function testEval ()
 
 function refreshGrid(tableName, proj_Id, obj_Id)
 {
-    //location.reload();
     window.sessionStorage.setItem("#HijoKannel", "1");
-    window.location = "#IndexPage";
     BuildMantenimineto(tableName, proj_Id, obj_Id);
-    window.location = "#PageBuilder";
     window.sessionStorage.removeItem("#HijoKannel");
-    //alert("hola");
+    RemoveSessionVar();
 }
 
 function BuildMantenimineto(tableName, proj_Id, obj_Id)
@@ -511,12 +508,15 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	var PadreOid = 0;
 
 	$("#ulSideMenu_PageBuilder").empty();
-
 	var temptextOn = "window.location = '#IndexPage'; RemoveSessionVar(); location.reload();";
-	$("#ulSideMenu_PageBuilder").append('<li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left" href="#IndexPage" onClick="' + temptextOn + '">Inicio</a></li>');
-	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" >Guardar</a></li>');
-	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>');
-	$("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left">Obtener GPS</a></li>');
+
+	$('#ulSideMenu_PageBuilder').html
+        (
+            '<li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left" href="#IndexPage" onClick="' + temptextOn + '">Inicio</a></li>' +
+            '<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" onclick="ClickEvent_btnSaveData();" >Guardar</a></li>' +
+            '<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>' +
+            '<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left" onclick="ClickEvent_btnGeoPos();">Obtener GPS</a></li>'
+        );
 
 	
 
@@ -543,12 +543,16 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	            {
 	                var param = '"' + infoTablasub[0].tablaName + '", ' + e.movil_proj + ", " + e.movil_obj;
 	                //window.location = "+'"#PageBuilder"'+"
-
-	                $("#ulSideMenu_PageBuilder").append("<li><a href='#' onClick='refreshGrid(" + param + ");' data-rel='close' >" + e.movil_name + "</a></li>");
+	                $('<li>').attr({ 'class': 'liHijosHide' }).html("<a href='#PageBuilder' onClick='refreshGrid(" + param + ");' data-rel='close' >" + e.movil_name + "</a>").appendTo("#ulSideMenu_PageBuilder");
+	                
 	            }
 	        });
 
-	        $("#ulSideMenu_PageBuilder").listview().listview("refresh");
+	        try {
+	            $('#ulSideMenu_PageBuilder').listview('refresh');
+	        } catch (e){
+	            $('#ulSideMenu_PageBuilder').listview();
+	        }
 	        
 	    }
 	}
@@ -820,6 +824,10 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
     window.sessionStorage.setItem("#Project_id", project_id);
     window.sessionStorage.setItem("#Object_id", object_id);
 
+    $(".liHijosHide")
+        .addClass("liHijosShow")
+        .removeClass("liHijosHide");
+
     var listOFKeys = [];
 
 	$("#PageBuilder_From").empty();
@@ -843,7 +851,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		    var tempID = ele.id_obj + "";
 		    tempID = tempID.toLowerCase().replace(tableName + "_", "");
 
-		    var InputValue = rsData[0][tempID];
+		    var InputValue = (rsData[0][tempID] == undefined) ? '' : rsData[0][tempID];
 
 		    $("#PageBuilder_From").append("<label>" + ele.label + "</label>");
 		    if (ele.sql_pk == "P")
@@ -1066,6 +1074,60 @@ function RefreshIndex()
 		$("#btnViewCat").hide();
 		$("#btnUpdateData").hide();
 	}
+}
+
+function ClickEvent_btnSaveData()
+{
+    var rowID = window.sessionStorage.getItem("#RowID");
+    var tableName = window.sessionStorage.getItem("#TableName");
+
+    if (rowID != null && tableName != null) {
+        var rs = db.SELECT("ListMod", function (row) {
+            return row.tablaName == tableName
+        });
+
+        if (rs.length > 0) {
+            var pID = rs[0].project_id;
+            var oID = rs[0].object_id;
+
+            var rsDef = db.SELECT("def_tables_movil", function (row) {
+                return row.project_id == pID &&
+                        row.object_id == oID
+            });
+
+            var updateArray = "{";
+
+            if (rsDef.length > 0) {
+                $(rsDef).each(function (index, ele) {
+                    var ObjID = ele.id_obj;
+                    var colName = ObjID.toLowerCase().replace(tableName + "_", "");
+
+                    var InValue = $("#" + ObjID).val();
+
+                    if (colName == "usuario")
+                        updateArray += '"usuario": "' + window.sessionStorage.getItem("UserLogin") + '", ';
+                    else
+                        updateArray += '"' + colName + '": "' + InValue + '", ';
+                });
+
+                updateArray += "}";
+
+                updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
+
+                db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
+
+                var IdListMod = rs[0].id;
+                db.UPDATE("ListMod", { sinc: 1 }, { id: IdListMod });
+            }
+
+
+        }
+    }
+}
+
+function ClickEvent_btnGeoPos()
+{
+    navigator.geolocation.getCurrentPosition(onSuccess, onError);
 }
 
 // on Create events 
@@ -1299,86 +1361,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         window.sessionStorage.removeItem("#Project_id");
         window.sessionStorage.removeItem("#Object_id");
         RemoveSessionVar();
-
-        var temptextOn = "window.location = '#IndexPage'; RemoveSessionVar(); location.reload();";
-        $("#ulSideMenu_PageBuilder").append('<li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left" href="#IndexPage" onClick="' + temptextOn + '">Inicio</a></li>');
-        $("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" >Guardar</a></li>');
-        $("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>');
-        $("#ulSideMenu_PageBuilder").append('<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left">Obtener GPS</a></li>');
     });
 
-
-    $("#btnGeoPos").click(function (e)
-    {
-        navigator.geolocation.getCurrentPosition(onSuccess, onError);
-    });
-
-    $("#btnSaveData").click(function ()
-    {
-        var rowID = window.sessionStorage.getItem("#RowID");
-        var tableName = window.sessionStorage.getItem("#TableName");
-
-        if (rowID != null && tableName != null)
-        {
-            var rs = db.SELECT("ListMod", function (row)
-            {
-                return row.tablaName == tableName
-            });
-
-            if (rs.length > 0)
-            {
-                var pID = rs[0].project_id;
-                var oID = rs[0].object_id;
-
-                var rsDef = db.SELECT("def_tables_movil", function (row)
-                {
-                    return row.project_id == pID &&
-                            row.object_id == oID
-                });
-
-                var updateArray = "{";
-
-                if (rsDef.length > 0)
-                {
-                    $(rsDef).each(function (index, ele)
-                    {
-                        var ObjID = ele.id_obj;
-                        var colName = ObjID.toLowerCase().replace(tableName + "_", "");
-                        
-                        var InValue = $("#" + ObjID).val();
-
-                        if (colName == "usuario")
-                            updateArray += '"usuario": "' + window.sessionStorage.getItem("UserLogin") + '", ';
-                        else
-                            updateArray += '"' + colName + '": "' + InValue + '", ';
-                    });
-
-                    updateArray += "}";
-
-                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
-
-                    db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
-
-                    var IdListMod = rs[0].id;
-                    db.UPDATE("ListMod", { sinc: 1 }, {id: IdListMod});
-
-                    /*$("#PageBuilder_Lista").show();
-                    $("#PageBuilder_From").hide();
-                    $("#btnVC_Atras").hide();
-                    $("#btnSaveData").hide();
-                    $("#btnGeoPos").hide();
-                    $("#btnNewReg").show();
-                    window.sessionStorage.removeItem("#RowID");
-                    window.sessionStorage.removeItem("#TableName");*/
-
-                    //location.reload();
-
-                    //BuildMantenimineto(tableName, pID, oID);
-                }
-
-
-            }
-        }
-    });
 });
 
