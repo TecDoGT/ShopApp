@@ -77,13 +77,15 @@ function CreateDB(name)
 			sql_datatype: '',
 			content_type: '',
 			case_sensitive: '',
-			initial_value: '',
+			initial_value_movil: '',
 		    label_eng: '',
 			list_labels: '',
 			list_values: '',
 			sql_colnum: 0,
 			sql_pk: '',
-		    data_source_movil: ''
+			data_source_movil: '',
+			pk_pos: 0,
+            enabled: ''
 		});
 		
 		db.CREATE("Object_Movil",
@@ -509,12 +511,12 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 
 	$("#ulSideMenu_PageBuilder").empty();
 	var temptextOn = "window.location = '#IndexPage'; RemoveSessionVar(); location.reload();";
-
+	var NewRegParams = "'" + tableName + "', " + proj_Id + ", " + obj_Id;
 	$('#ulSideMenu_PageBuilder').html
         (
             '<li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left" href="#IndexPage" onClick="' + temptextOn + '">Inicio</a></li>' +
             '<li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" onclick="ClickEvent_btnSaveData();" >Guardar</a></li>' +
-            '<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>' +
+            '<li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left" onclick="ClickEvent_btnNewReg(' + NewRegParams + ')">Nuevo</a></li>' +
             '<li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left" onclick="ClickEvent_btnGeoPos();">Obtener GPS</a></li>'
         );
 
@@ -575,9 +577,8 @@ function GetPrimaryKey(tableName, proj_Id, obj_Id)
 		
 		return  row.project_id == proj_Id &&
 				row.object_id == obj_Id &&
-				numCol > 0 &&
 				row.sql_pk == 'P'
-	}).ORDER_BY( 'sql_colnum ASC' );
+	}).ORDER_BY('pk_pos ASC');
 	
 	if (rsPK.length > 0)
 	{
@@ -626,7 +627,7 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		    $('<th>').attr({ 'data-priority': (index + 1) }).html(ele1.label).appendTo("#PageBuilder_Tabla tr:first");
 		});
 				
-		var DataRs = db.SELECT(tableName, Owhere).LIMIT(500); // max Data to display
+		var DataRs = db.SELECT(tableName, Owhere).LIMIT(1000); // max Data to display
 		
 		if (DataRs.length > 0)
 		{
@@ -690,9 +691,9 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		}
 		else {
 		    Mensage('no data');
+		    $("#btn_Home").trigger("click");
 		}
 		
-		//window.location = "#PageBuilder";
 		$("#PageBuilder_From").hide();
 		$("#PageBuilder_Tabla").show();
 		$("#btnVC_Atras").hide();
@@ -704,6 +705,10 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 
 function FillComboQuery(tableName, OWhere, ColumnName, initVal)
 {
+    var DisabelVar = window.sessionStorage.getItem("#PKDisable");
+
+    DisabelVar = (DisabelVar == "null") ? null : DisabelVar;
+
     if (initVal == undefined || initVal == null)
         initVal = window.sessionStorage.getItem("#initValue$");
 
@@ -714,7 +719,7 @@ function FillComboQuery(tableName, OWhere, ColumnName, initVal)
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0)
         {
-            $("<select>").attr({ 'id': idSinHash, 'onblur': 'saveTemVal("#' + idSinHash + '", "");' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'disabled': DisabelVar, 'onblur': 'saveTemVal("#' + idSinHash + '", "");' }).appendTo("#PageBuilder_From");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele)
@@ -749,6 +754,10 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
     var OPID = window.sessionStorage.getItem("#Project_id");
     var OOID = window.sessionStorage.getItem("#Object_id");
 
+    var DisabelVar = window.sessionStorage.getItem("#PKDisable");
+
+    DisabelVar = (DisabelVar == "null") ? null : DisabelVar;
+
     if (initVal == undefined || initVal == null)
         initVal = window.sessionStorage.getItem("#initValue$");
 
@@ -757,7 +766,7 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
         var rs = db.SELECT(tableName, OWhere);
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0) {
-            $("<select>").attr({ 'id': idSinHash, 'onchange': 'CQDRefreshForm("' + idSinHash + '", "' + OtableName + '", ' + OPID + ', ' + OOID + ', ' + OrowID + ');' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'disabled':DisabelVar, 'onchange': 'CQDRefreshForm("' + idSinHash + '", "' + OtableName + '", ' + OPID + ', ' + OOID + ', ' + OrowID + ');' }).appendTo("#PageBuilder_From");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele) {
@@ -811,6 +820,11 @@ function saveTemVal(idName, DataType)
 
     var tempVal = $(idName).val();
 
+    if (DataType == "CB")
+    {
+        tempVal = $(idName).is(":checked") ? 1 : 0;
+    }
+
     idName = idName + "$";
     idName = idName.toLowerCase();
 
@@ -853,11 +867,15 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		    var InputValue = (rsData[0][tempID] == undefined) ? '' : rsData[0][tempID];
 
-		    $("#PageBuilder_From").append("<label>" + ele.label + "</label>");
+		    $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo("#PageBuilder_From");
+
+		    var idJQ = '#' + ele.id_obj;
+
+		    var disableVar = null;
+
 		    if (ele.sql_pk == "P")
 		    {
-		        $("<input>").attr({ 'type': 'text', 'disabled': 'disabled', 'id': ele.id_obj, 'value': InputValue }).appendTo("#PageBuilder_From");
-		        $('input').textinput();
+		        disableVar = 'disabled';
 
 		        var temp = ele.id_obj + "";
 		        temp = temp.toLocaleLowerCase();
@@ -873,54 +891,65 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		        listOFKeys.push("#" + temp + "$");
 
-		        switch (ele.content_type)
-		        {
-		            case "D":
-		                switch (ele.sql_datatype)
-		                {
-		                    case "IN":
-		                    case "DE":
-		                        $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
-		                        $('input').textinput();		                        
-		                        break;
-		                    case "VA":
-		                        $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
-		                        $('input').textinput();
-		                        break;
-		                }
-		                break;
-		            case "B":
-		                var tempID = "#" + ele.id_obj;
-		                $("<select>").attr({ 'id': ele.id_obj, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
-		                $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
+		    }
 
-		                var listL_S = ele.list_labels + "";
-		                var listV_S = ele.list_values + "";
+		    switch (ele.content_type) {
+		        case "D":
+		            switch (ele.sql_datatype) {
+		                case "IN":
+		                case "DE":
+		                    $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
+		                    $(idJQ).textinput();
+		                    break;
+		                case "VA":
+		                    $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+		                    $(idJQ).textinput();
+		                    break;
+		                case "DA":
+		                case "DT":
+		                    $('<input>').attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': disableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+		                    $(idJQ).textinput();
+		                    break;
+		            }
+		            break;
+		        case "C":
+		            var check = (InputValue == 1) ? true : false;
+		            $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': disableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check }).appendTo("#PageBuilder_From");
+		            $(idJQ).checkboxradio();
+		            break;
+		        case "B":
+		            var tempID = "#" + ele.id_obj;
+		            $("<select>").attr({ 'id': ele.id_obj, 'disabled': disableVar, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+		            $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
 
-		                listL = listL_S.split(",");
-		                listV = listV_S.split(",");
+		            var listL_S = ele.list_labels + "";
+		            var listV_S = ele.list_values + "";
 
-		                $.each(listL, function (i, valor) {
-		                    if (InputValue == listV[i])
-		                        $("<option>").attr({ 'value': listV[i], 'selected': 'selected' }).html(valor).appendTo(tempID);
-		                    else
-		                        $("<option>").attr({ 'value': listV[i] }).html(valor).appendTo(tempID);
-		                });
+		            listL = listL_S.split(",");
+		            listV = listV_S.split(",");
 
-		                $('select').selectmenu();
-		                break;
-		            case "Q":
-		            case "E":
-		                var tempID = "#" + ele.id_obj;
-		                var code = ele.data_source_movil;
-		                code = code.replace(/~/g, '"');
-		                window.sessionStorage.setItem("#IdElementTep", tempID);
-		                window.sessionStorage.setItem("#initValue$", InputValue);
-		                $.globalEval(code);
-		                window.sessionStorage.removeItem("#IdElementTep");
-		                window.sessionStorage.removeItem("#initValue$");
-		                break;
-		        }
+		            $.each(listL, function (i, valor) {
+		                if (InputValue == listV[i])
+		                    $("<option>").attr({ 'value': listV[i], 'selected': 'selected' }).html(valor).appendTo(tempID);
+		                else
+		                    $("<option>").attr({ 'value': listV[i] }).html(valor).appendTo(tempID);
+		            });
+
+		            $(idJQ).selectmenu();
+		            break;
+		        case "Q":
+		        case "E":
+		            var tempID = "#" + ele.id_obj;
+		            var code = ele.data_source_movil;
+		            code = code.replace(/~/g, '"');
+		            window.sessionStorage.setItem("#IdElementTep", tempID);
+		            window.sessionStorage.setItem("#initValue$", InputValue);
+		            window.sessionStorage.setItem("#PKDisable", disableVar);
+		            $.globalEval(code);
+		            window.sessionStorage.removeItem("#IdElementTep");
+		            window.sessionStorage.removeItem("#initValue$");
+		            window.sessionStorage.removeItem("#PKDisable");
+		            break;
 		    }
 
 		});
@@ -949,6 +978,167 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		$("#btnSaveData").show();
 		$("#btnNewReg").hide();
 	}
+}
+
+/*
+*   funcion para crear, la forma de un reg nuevo.
+*/
+function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
+{
+    window.sessionStorage.setItem("#RowID", rowID);
+    window.sessionStorage.setItem("#TableName", tableName);
+    window.sessionStorage.setItem("#Project_id", project_id);
+    window.sessionStorage.setItem("#Object_id", object_id);
+
+    $(".liHijosHide")
+        .addClass("liHijosShow")
+        .removeClass("liHijosHide");
+
+    var listOFKeys = [];
+
+    $("#PageBuilder_From").empty();
+
+    var rs = db.SELECT("def_tables_movil", function (row) {
+        return row.project_id == project_id &&
+				row.object_id == object_id
+    });
+
+    var ListKey = GetPrimaryKey(tableName, project_id, object_id);
+
+    window.sessionStorage.setItem("#P_" + tableName + "_" + ListKey[ListKey.length - 1] + "$", 0);
+    window.sessionStorage.setItem("#P_" + tableName + "_empresa$", window.sessionStorage.getItem("UserEmpresa"));
+
+    var rsData = db.SELECT(tableName).ORDER_BY('');
+
+    if (rs.length != 0) {
+        $jqrs = $(rs);
+
+        var textHtml = "";
+
+        $jqrs.each(function (index, ele)
+        {
+            var tempID = ele.id_obj + "";
+            tempID = tempID.toLowerCase().replace(tableName + "_", "");
+            
+            var code = ele.initial_value_movil;
+            code = code.replace(/~/g, '"');
+            $.globalEval(code);
+
+            if (ele.sql_pk == "P") {
+                var temp = ele.id_obj + "";
+                temp = temp.toLocaleLowerCase();
+
+                if (window.sessionStorage.getItem("#P_" + temp + "$") == null)
+                    window.sessionStorage.setItem("#P_" + temp + "$", '');
+
+                listOFKeys.push("#P_" + temp + "$");
+            }
+            else {
+                var temp = ele.id_obj + "";
+                temp = temp.toLocaleLowerCase();
+                if (window.sessionStorage.getItem("#" + temp + "$") == null)
+                    window.sessionStorage.setItem("#" + temp + "$", '');
+
+                listOFKeys.push("#" + temp + "$");
+            }
+
+        });
+
+        window.sessionStorage.setItem("#listOFKeys", listOFKeys);
+
+        $jqrs.each(function (index, ele) {
+            var tempID = ele.id_obj + "";
+            tempID = tempID.toLowerCase().replace(tableName + "_", "");
+            var idJQ = '#' + ele.id_obj;
+
+            var DisableVar = (ListKey[ListKey.length - 1] == tempID) ? 'disabled' : null;
+            
+            var InputValue = window.sessionStorage.getItem(idJQ.toLowerCase() + "$");
+
+            if (ele.sql_pk == "P")
+                InputValue = window.sessionStorage.getItem(idJQ.toLowerCase().replace("#", "#P_") + "$");
+
+            $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo("#PageBuilder_From");
+            switch (ele.content_type) {
+                case "D":
+                    switch (ele.sql_datatype) {
+                        case "IN":
+                        case "DE":
+                            $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': DisableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
+                            $(idJQ).textinput();
+                            break;
+                        case "VA":
+                            $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': DisableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+                            $(idJQ).textinput();
+                            break;
+                        case "DA":
+                        case "DT":
+                            $('<input>').attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': DisableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+                            $(idJQ).textinput();
+                            break;
+                    }
+                    break;
+                case "C":
+                    var check = (InputValue == 1) ? true : false;
+                    $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': DisableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check }).appendTo("#PageBuilder_From");
+                    $(idJQ).checkboxradio();
+                    break;
+                case "B":
+                    var tempID = "#" + ele.id_obj;
+                    $("<select>").attr({ 'id': ele.id_obj, 'disabled': DisableVar, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+                    $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
+
+                    var listL_S = ele.list_labels + "";
+                    var listV_S = ele.list_values + "";
+
+                    listL = listL_S.split(",");
+                    listV = listV_S.split(",");
+
+                    $.each(listL, function (i, valor) {
+                        if (InputValue == listV[i])
+                            $("<option>").attr({ 'value': listV[i], 'selected': 'selected' }).html(valor).appendTo(tempID);
+                        else
+                            $("<option>").attr({ 'value': listV[i] }).html(valor).appendTo(tempID);
+                    });
+
+                    $(idJQ).selectmenu();
+                    break;
+                case "Q":
+                case "E":
+                    var tempID = "#" + ele.id_obj;
+                    var code = ele.data_source_movil;
+                    code = code.replace(/~/g, '"');
+                    window.sessionStorage.setItem("#IdElementTep", tempID);
+                    window.sessionStorage.setItem("#initValue$", InputValue);
+                    window.sessionStorage.setItem("#PKDisable", DisableVar);
+                    $.globalEval(code);
+                    window.sessionStorage.removeItem("#IdElementTep");
+                    window.sessionStorage.removeItem("#initValue$");
+                    window.sessionStorage.removeItem("#PKDisable");
+                    break;
+            }
+
+        });
+
+        var rsTabla = db.SELECT("ListMod", function (row) {
+            return row.project_id == project_id &&
+				   row.object_id == object_id
+        });
+
+        if (rsTabla.length != 0) {
+            $("#lHForma").text(rsTabla[0].formTitle);
+            if (rsTabla[0].tablaName == "vc_finca") {
+                $("#btnGeoPos").show();
+            }
+        }
+
+
+        $("#PageBuilder_From").show();
+        $("#PageBuilder_Lista").hide();
+        $("#btnVC_Atras").show();
+        $("#btnSaveData").show();
+        $("#btnNewReg").hide();
+    }
 }
 
 function RemoveSessionVar()
@@ -1103,6 +1293,12 @@ function ClickEvent_btnSaveData()
                     var colName = ObjID.toLowerCase().replace(tableName + "_", "");
 
                     var InValue = $("#" + ObjID).val();
+                    var InputType = $("#" + ObjID).attr('type');
+
+                    if (InputType == "checkbox")
+                    {
+                        InValue = $("#" + ObjID).is(":checked") ? 1 : 0;
+                    }
 
                     if (colName == "usuario")
                         updateArray += '"usuario": "' + window.sessionStorage.getItem("UserLogin") + '", ';
@@ -1128,6 +1324,11 @@ function ClickEvent_btnSaveData()
 function ClickEvent_btnGeoPos()
 {
     navigator.geolocation.getCurrentPosition(onSuccess, onError);
+}
+
+function ClickEvent_btnNewReg(tableName, project_id, object_id)
+{
+    BuildFormMobilNewReg(tableName, project_id, object_id, 0);
 }
 
 // on Create events 
@@ -1229,7 +1430,11 @@ $(document).on("pagecreate", "#IndexPage", function()
 					DownLoadDataSave(55, 100, "", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 
 					
-				},"json");
+				}, "json")
+                    .fail(function ()
+                    {
+                        Mensage("No Coneccion.");
+                    });
 
 			}
 			else
