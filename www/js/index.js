@@ -467,6 +467,7 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	var PK = GetPrimaryKey(tableName, proj_Id, obj_Id);
 	
 	var PKs = [];
+	var PkID = [];
 	var Owhere = "{ ";
 		
 	$.each(PK, function (index, ele)
@@ -483,10 +484,11 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	    var temp = window.sessionStorage.getItem(nombreCol);
 		if (temp == null)
 		{
-			PKs.push(ele);
+		    PKs.push(ele);
 		}
 		else
 		{
+		    PkID.push(JSON.parse('{"colName": "' + ele + '", "id": ' + temp + '}'));
 			Owhere += '"' + ele + '": ' + temp + ", ";
 		}
 	});
@@ -497,6 +499,7 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	var JOwhere = JSON.parse(Owhere);
 	
 	window.sessionStorage.PKNext = PKs;
+	window.sessionStorage.PKID = JSON.stringify(PkID);
 	
 	var rsTabla = db.SELECT("ListMod", function (row) {
 	    return row.project_id == proj_Id &&
@@ -648,7 +651,10 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		        if (element.modifica == "1")
 		        {
 		            if (element.sinc == "0") // Modificado, sin Acrulizar a la base de datos
-		                regClass = "regModificado";
+		                if (element.fuente == "2")
+		                    regClass = "regNew";
+		                else
+		                    regClass = "regModificado";
 		            else                     //Modificado, actulizado en la base de datos
 		                regClass = "regMod-and-sinc";
 
@@ -742,6 +748,10 @@ function CQDRefreshForm(idObj, tableName, project_id, object_id, rowID)
 {
     saveTemVal("#" + idObj, "");
     $("#btnSaveData").trigger("click");
+
+    if (window.sessionStorage.getItem("#FromMode") == "I")
+        rowID = window.sessionStorage.getItem("#RowID");
+
     $("#btnVC_Atras").trigger("click");
     BuildFormMobil(tableName, project_id, object_id, rowID);
 }
@@ -837,6 +847,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
     window.sessionStorage.setItem("#TableName", tableName);
     window.sessionStorage.setItem("#Project_id", project_id);
     window.sessionStorage.setItem("#Object_id", object_id);
+    window.sessionStorage.setItem("#FromMode", "U");
 
     $(".liHijosHide")
         .addClass("liHijosShow")
@@ -989,6 +1000,7 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
     window.sessionStorage.setItem("#TableName", tableName);
     window.sessionStorage.setItem("#Project_id", project_id);
     window.sessionStorage.setItem("#Object_id", object_id);
+    window.sessionStorage.setItem("#FromMode", "I");
 
     $(".liHijosHide")
         .addClass("liHijosShow")
@@ -1005,10 +1017,20 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
 
     var ListKey = GetPrimaryKey(tableName, project_id, object_id);
 
-    window.sessionStorage.setItem("#P_" + tableName + "_" + ListKey[ListKey.length - 1] + "$", 0);
-    window.sessionStorage.setItem("#P_" + tableName + "_empresa$", window.sessionStorage.getItem("UserEmpresa"));
+    var NextRowID = db.MAX(tableName);
+    
+    var rsLastReg = db.SELECT(tableName, { id: NextRowID - 1 });
 
-    var rsData = db.SELECT(tableName).ORDER_BY('');
+    var Max_1 = (rsLastReg[0][ListKey[ListKey.length - 1]] * 1) + 1;
+    
+    window.sessionStorage.setItem("#P_" + tableName + "_" + ListKey[ListKey.length - 1] + "$", Max_1);
+
+    var ListPrevPK = JSON.parse(window.sessionStorage.PKID);
+
+    $(ListPrevPK).each(function (i, e)
+    {
+        window.sessionStorage.setItem("#P_" + tableName + "_" + e.colName + "$", e.id);
+    });
 
     if (rs.length != 0) {
         $jqrs = $(rs);
@@ -1056,7 +1078,14 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
             var InputValue = window.sessionStorage.getItem(idJQ.toLowerCase() + "$");
 
             if (ele.sql_pk == "P")
-                InputValue = window.sessionStorage.getItem(idJQ.toLowerCase().replace("#", "#P_") + "$");
+            {
+                var temp = window.sessionStorage.getItem(idJQ.toLowerCase().replace("#", "#P_") + "$");
+                if (temp == null || temp == "")
+                    DisableVar = null;
+                else
+                    DisableVar = 'disabled';
+                InputValue = temp;
+            }
 
             $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo("#PageBuilder_From");
             switch (ele.content_type) {
@@ -1147,6 +1176,7 @@ function RemoveSessionVar()
     window.sessionStorage.removeItem("#TableName");
     window.sessionStorage.removeItem("#Project_id");
     window.sessionStorage.removeItem("#Object_id");
+    window.sessionStorage.removeItem("#FromMode");
 
     var list_str = window.sessionStorage.getItem("#listOFKeys");
 
@@ -1160,6 +1190,21 @@ function RemoveSessionVar()
     });
 
     window.sessionStorage.removeItem("#listOFKeys");
+
+    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""}]');
+
+    $(listDefaultSV).each(function (i, e)
+    {
+        listDefaultSV[i].val = window.sessionStorage.getItem(e.key);
+    });
+
+    window.sessionStorage.clear();
+
+    $(listDefaultSV).each(function (i, e)
+    {
+        window.sessionStorage.setItem(e.key, e.val);
+    });
+
 }
 
 function GROUP_BY ( data, col)
@@ -1270,6 +1315,7 @@ function ClickEvent_btnSaveData()
 {
     var rowID = window.sessionStorage.getItem("#RowID");
     var tableName = window.sessionStorage.getItem("#TableName");
+    var InsertMode = window.sessionStorage.getItem("#FromMode");
 
     if (rowID != null && tableName != null) {
         var rs = db.SELECT("ListMod", function (row) {
@@ -1308,9 +1354,25 @@ function ClickEvent_btnSaveData()
 
                 updateArray += "}";
 
-                updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
+                if (InsertMode == "I")
+                {
+                    var NextRowID = db.MAX(tableName);
+                    window.sessionStorage.setItem("#RowID", NextRowID);
 
-                db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
+                    var rs = db.SELECT(tableName, { id: NextRowID - 1 });
+
+                    updateArray = updateArray.replace(", }", ', "fuente": 2, "modifica": 1, "sinc": 0}');
+
+                    var InssertArray = updateArray.replace("{", "[{").replace("}", "}]");
+
+                    db.INSERT_INTO(tableName, JSON.parse(InssertArray));
+                }
+                else
+                {
+                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
+
+                    db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
+                }
 
                 var IdListMod = rs[0].id;
                 db.UPDATE("ListMod", { sinc: 1 }, { id: IdListMod });
@@ -1374,6 +1436,8 @@ $(document).on("pagecreate", "#IndexPage", function()
 		$("#lUserName").text("Usuario: " + window.sessionStorage.UserLogin + "(" + window.sessionStorage.UserPromotor + ")");
 		
 		window.sessionStorage.setItem("empresa", window.sessionStorage.UserEmpresa);
+
+        
 	
 		$("#dMessageNoDB").hide();
 		$("#divUlModList").show();
@@ -1566,6 +1630,10 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         window.sessionStorage.removeItem("#Project_id");
         window.sessionStorage.removeItem("#Object_id");
         RemoveSessionVar();
+
+        $(".liHijosShow")
+            .addClass("liHijosHide")
+            .removeClass("liHijosShow");
     });
 
 });
