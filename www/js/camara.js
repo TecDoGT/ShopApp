@@ -22,3 +22,8 @@
         Mensage(error);
     }
 }
+
+document.addEventListener("deviceready", onDeviceReady, false);
+function onDeviceReady() {
+    Mensage(navigator.camera);
+}
