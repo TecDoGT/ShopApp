@@ -14,12 +14,18 @@
             saveToPhotoAlbum: false
         };
 
-    navigator.camera.getPicture(function (srcIMG)
+    try {
+
+        navigator.camera.getPicture(function (srcIMG) {
+            $("#ImgTempDisplay").attr("scr", "data:image/jpeg;base64," + srcIMG);
+        },
+        function (msg) {
+            Mensage(msg);
+        }, cameraOptions);
+
+    }
+    catch (err)
     {
-        $("#ImgTempDisplay").attr("scr", "data:image/jpeg;base64," + srcIMG);
-    },
-    function (msg)
-    {
-        Mensage(msg);
-    }, cameraOptions);
+        Mensage(err);
+    }
 }
