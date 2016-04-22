@@ -1,21 +1,15 @@
 ﻿function tomarFoto(fuente)
 {
     try {
-        var captureSuccess = function (mediaFiles) {
-            var i, path, len;
-            for (i = 0, len = mediaFiles.length; i < len; i += 1) {
-                path = mediaFiles[i].fullPath;
-                // do something interesting with the file
-            }
-        };
-
-        // capture error callback
-        var captureError = function (error) {
-            navigator.notification.alert('Error code: ' + error.code, null, 'Capture Error');
-        };
-
-        // start image capture
-        navigator.device.capture.captureImage(captureSuccess, captureError, { limit: 2 });
+        navigator.customCamera.getPicture(filename, function success(fileUri) {
+            alert("File location: " + fileUri);
+        }, function failure(error) {
+            alert(error);
+        }, {
+            quality: 80,
+            targetWidth: 120,
+            targetHeight: 120
+        });
     }
     catch (error)
     {
@@ -23,7 +17,3 @@
     }
 }
 
-document.addEventListener("deviceready", onDeviceReady, false);
-function onDeviceReady() {
-    Mensage(navigator.camera);
-}
