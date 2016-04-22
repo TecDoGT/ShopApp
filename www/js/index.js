@@ -41,6 +41,11 @@ var onSuccess = function (position) {
     RefreshFormMobil();
 };
 
+function pad(str, max) {
+    str = str.toString();
+    return str.length < max ? pad("0" + str, max) : str;
+}
+
 function onError(error) {
     Mensage('code: ' + error.code + '\n' +
           'message: ' + error.message + '\n');
@@ -84,7 +89,7 @@ function CreateDB(name)
 			sql_colnum: 0,
 			sql_pk: '',
 			data_source_movil: '',
-			pk_pos: 0,
+			pk_pos: "0",
             enabled: ''
 		});
 		
@@ -218,7 +223,7 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 
 				maxTrans++;
 
-				$.get("http://200.30.150.165:8080/webservidor2/mediador.php", 
+				$.post("http://200.30.150.165:8080/webservidor2/mediador.php", 
 				{
 					"cmd"		: "xmlData",
 					"Project"	: Project_Id,
@@ -256,13 +261,15 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					DataInsert = DataInsert.replace("[ ,{", "[{");
 					
 					objDataInsert = JSON.parse(DataInsert);
+
+					$("#AJAXLoadLabel").text("Descarga... " + (++DownCount) + " [" + TableName + "] " + " de " + maxTrans);
 					
 					db.INSERT_INTO(TableName, objDataInsert);
 					
 					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle, project_id: Project_Id, object_id: Object_Id}]);				
 					$("#dMessageBDDone").show();
 
-					$("#AJAXLoadLabel").text("Descarga... " + (++DownCount) + " de " + maxTrans);
+					
 
 					if (maxTrans == DownCount)
 					{
@@ -341,7 +348,16 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 
 function DropDataBase(name)
 {
-	var tablas = "LocalStorageDB-" + name + "-::tables::";
+    var tablas = "LocalStorageDB-" + name + "-::tables::";
+    var rs = db.SELECT("movil_User", { userName: window.sessionStorage.UserLogin });
+    
+    var tempPws = "";
+
+    if (rs.length > 0)
+    {
+        tempPws = rs[0].passWord;
+    }
+
 	if (window.localStorage.getItem(tablas) != undefined)
 	{
 		$("#ulModList").empty();
@@ -360,6 +376,15 @@ function DropDataBase(name)
 		CreateDB("KannelMovil");
 		
 		RefreshIndex();
+
+		db.INSERT_INTO("movil_User", [
+            {
+                userName: window.sessionStorage.UserLogin,
+                passWord: tempPws,
+                userPais: window.sessionStorage.UserPais,
+                Empresa: window.sessionStorage.UserEmpresa,
+                userPromotor: window.sessionStorage.UserPromotor
+            }]);
 	}
 }
 
@@ -918,6 +943,21 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                    break;
 		                case "DA":
 		                case "DT":
+		                    InputValue = InputValue + "";
+
+		                    var FechaSplit = InputValue.split("-");
+		                    if (FechaSplit.length > 0)
+		                    {
+		                        var Dia = FechaSplit[0] * 1;
+		                        var Mes = (FechaSplit[1] * 1) - 1;
+		                        var Anio = (FechaSplit[2] * 1) + 2000;
+
+		                        var fecha = new Date(Anio, Mes, Dia);
+                                
+		                        InputValue = fecha.getFullYear() + "-" + pad((fecha.getMonth() + 1) + "",2) + "-" + fecha.getDate();
+		                    }
+
+                            
 		                    $('<input>').attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': disableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
 		                    $(idJQ).textinput();
 		                    break;
@@ -965,6 +1005,8 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		});
 
+		
+
 		window.sessionStorage.setItem("#listOFKeys", listOFKeys);
 
 		var rsTabla = db.SELECT("ListMod", function (row)
@@ -976,9 +1018,18 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		if (rsTabla.length != 0)
 		{
 		    $("#lHForma").text(rsTabla[0].formTitle);
-		    if (rsTabla[0].tablaName == "vc_finca")
+		    switch(rsTabla[0].tablaName)
 		    {
-		        $("#btnGeoPos").show();
+		        case "vc_finca":
+		            $("#btnGeoPos").show();
+		            break;
+		        case "q_encuesta":
+		            
+		            $('<input>')
+                        .attr({ 'id': 'BTN_qEncuesta', 'data-role': 'button', 'type': 'button', 'value': 'Encuesta', 'onclick': 'window.location = "#EncuentaBuilder"' })
+                        .appendTo("#PageBuilder_From");
+		            $('#BTN_qEncuesta').button();
+		            break;
 		    }
 		}
 		
@@ -1448,6 +1499,7 @@ $(document).on("pagecreate", "#IndexPage", function()
 		$("#btnLogOut").click(function (e)
 		{
 		    window.sessionStorage.clear();
+		    db.TRUNCATE("movil_User");
 		});
 		
 		$("#btnDBDown").click(function(e) 
@@ -1485,19 +1537,23 @@ $(document).on("pagecreate", "#IndexPage", function()
 						});
 					}
 					
-					DownLoadDataSave(55, 91, "", "UNIDAD_MEDIDA", 0, ""); 
+					//DownLoadDataSave(55, 91, "", "UNIDAD_MEDIDA", 0, ""); 
 					DownLoadDataSave(55, 82, "", "PAIS", 0, ""); 
 					DownLoadDataSave(55, 83, "", "DEPARTAMENTO", 0, ""); 
 					DownLoadDataSave(55, 84, "", "CIUDAD", 0, ""); 
 					DownLoadDataSave(55, 45, "", "VC_VARIEDAD", 0, ""); 
 					DownLoadDataSave(55, 48, "", "VC_CERTIFICACION", 0, ""); 
-					DownLoadDataSave(55, 100, "", "VC_ACTIVIDAD_PROMOTOR", 0, "");
+					//DownLoadDataSave(55, 100, "", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 
 					
 				}, "json")
-                    .fail(function ()
+                    .fail(function (qXHR, textStatus, errorThrown)
                     {
                         Mensage("No Coneccion.");
+                        //Mensage(qXHR.responseText);
+                        console.log(qXHR);
+                        console.log(textStatus);
+                        console.log(errorThrown);
                     });
 
 			}
@@ -1637,4 +1693,19 @@ $(document).on("pagecreate", "#PageBuilder", function ()
     });
 
 });
+
+$(document).on("pagecreate", "#page-home", function ()
+{
+    var empresa = window.sessionStorage.getItem("UserLogin");
+    var userName = window.sessionStorage.getItem("UserEmpresa");
+
+    if (empresa != null && userName != null)
+    {
+        window.location = "#IndexPage";
+    }
+    
+    
+});
+
+
 

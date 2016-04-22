@@ -1,13 +1,10 @@
 
 function ValEntrada ()
 {
-	//var UCode = $("#tbUserCode").val();
 	var UName = $("#tbUserName").val();
 	var UPwd  = $("#tbUserPassWord").val();
 	
 	UName = UName.toUpperCase();
-	
-	//var NCerrarS = $("#cbSesionPermanete").is(":checked");
 	
 	if (UName == "" || UPwd == "")
 	{
@@ -84,7 +81,8 @@ function ValEntrada ()
 								userName: UName,
 								passWord: UPwd,
 								userPais: data.usrPais,
-								Empresa: data.usrEmpresa
+								Empresa: data.usrEmpresa,
+								userPromotor: data.promotor
 							}
 						];
 						db.INSERT_INTO("movil_User", dataValues);
@@ -170,20 +168,7 @@ function ValEntrada ()
 				$("#loadingAJAX").hide();
 			});
 		}
-		else
-		{
-			rs = db.SELECT("movil_User", function (row)
-			{
-				return ( userName == UName && passWord == UPwd );
-			});
-			
-			if (rs.length > 0)
-			{
-				window.sessionStorage.UserLogin = rs.userName;
-				window.sessionStorage.UserEmpresa = rs.Empresa;
-				window.sessionStorage.UserPais = rs.userPais;
-			}
-		}
+		
 		
 
 	}
