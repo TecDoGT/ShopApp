@@ -26,7 +26,7 @@
   <preference name="StatusBarStyle" value="lightcontent" />
   <preference name="CameraUsesGeolocation" value="true" />
   <plugin name="org.apache.cordova.battery-status" source="pgb" spec="0.2.11" />
-	<plugin name="org.apache.cordova.camera" source="pgb" spec="0.3.2" />
+	<plugin name="org.apache.cordova.camera" source="pgb" spec="0.3.6" />
 	<plugin name="org.apache.cordova.console" source="pgb" spec="0.2.11" />
 	<plugin name="org.apache.cordova.contacts" source="pgb" spec="0.2.13" />
 	<plugin name="org.apache.cordova.device" source="pgb" spec="0.2.12" />
