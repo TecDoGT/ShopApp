@@ -1,6 +1,7 @@
 ﻿function tomarFoto(fuente)
 {
     try {
+        var filename = "fotoTest1.jpg";
         navigator.customCamera.getPicture(filename, function success(fileUri) {
             alert("File location: " + fileUri);
         }, function failure(error) {
