@@ -152,7 +152,7 @@
                 <li><a class="ui-btn ui-shadow ui-icon-home ui-btn-icon-left"  href="#IndexPage" onClick="window.location = '#IndexPage'; RemoveSessionVar(); location.reload();" id="btn_Home">Inicio</a></li>
                 <li><a href="#PageBuilder" data-rel="close" id="btnSaveData" class="ui-btn ui-shadow ui-icon-check ui-btn-icon-left" onclick="ClickEvent_btnSaveData();">Guardar</a></li>
                 <li><a href="#PageBuilder" data-rel="close" id="btnNewReg" class="ui-btn ui-shadow ui-icon-plus ui-btn-icon-left">Nuevo</a></li>
-                <li><a href="#PageBuilder" data-rel="close" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left" onclick="ClickEvent_btnGeoPos();">Obtener GPS</a></li>
+                <li><a href="#PageBuilder" data-rel="back" id="btnGeoPos" class="ui-btn ui-shadow ui-icon-location ui-btn-icon-left" onclick="ClickEvent_btnGeoPos();">Obtener GPS</a></li>
             </ul>
             
         </div>
@@ -186,6 +186,7 @@
 
     <div id="EncuentaBuilder" data-role="page"data-theme="a">
         <div data-role="header">
+            <a data-rel="back" class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline  ui-btn-left">Atras</a>
             <h1 id="lHEncuestaB">Encuesta</h1>
         </div>
 
