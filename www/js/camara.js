@@ -1,31 +1,24 @@
 ﻿function tomarFoto(fuente)
 {
-    cameraOptions =
-        {
-            quality: 50,
-            destinationType: 0,
-            sourceType: fuente,
-            allowEdit: true,
-            encodingType: 0,
-            targetWidth: 100,
-            targetHeight: 100,
-            correctOrientation: true,
-            popoverOptions: true,
-            saveToPhotoAlbum: false
+    try {
+        var captureSuccess = function (mediaFiles) {
+            var i, path, len;
+            for (i = 0, len = mediaFiles.length; i < len; i += 1) {
+                path = mediaFiles[i].fullPath;
+                // do something interesting with the file
+            }
         };
 
-    try {
+        // capture error callback
+        var captureError = function (error) {
+            navigator.notification.alert('Error code: ' + error.code, null, 'Capture Error');
+        };
 
-        navigator.camera.getPicture(function (srcIMG) {
-            $("#ImgTempDisplay").attr("scr", "data:image/jpeg;base64," + srcIMG);
-        },
-        function (msg) {
-            Mensage(msg);
-        }, cameraOptions);
-
+        // start image capture
+        navigator.device.capture.captureImage(captureSuccess, captureError, { limit: 2 });
     }
-    catch (err)
+    catch (error)
     {
-        Mensage(err);
+        Mensage(error);
     }
 }
