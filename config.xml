@@ -5,7 +5,7 @@
   <author href="http://phonegap.com" email="gs@ls-sy.com">ls-sys</author>
   <content src="index.html"/>
   <preference name="phonegap-version" value="3.7.0" />
-  <preference name="permissions" value="true"/>
+  
   <preference name="orientation" value="all"/>
   <preference name="target-device" value="universal"/>
   <preference name="fullscreen" value="false"/>
@@ -24,6 +24,36 @@
   <preference name="StatusBarBackgroundColor" value="#000000" />
   <preference name="StatusBarStyle" value="lightcontent" />
   <preference name="CameraUsesGeolocation" value="true" />
+  
+  <preference name="permissions" value="true" />
+	<feature name="File">
+		<param name="ios-package" value="CDVFile" />
+	</feature>
+  
+	<feature name="FileTransfer">
+		<param name="ios-package" value="CDVFileTransfer" />
+	</feature>
+	<feature name="Camera">
+		<param name="ios-package" value="CDVCamera" />
+	</feature>
+	<feature name="LocalStorage">
+		<param name="ios-package" value="CDVLocalStorage" />
+	</feature>
+	<feature name="Geolocation">
+		<param name="ios-package" value="CDVLocation" />
+	</feature>
+	<feature name="Calendar">
+		<param name="ios-package" value="CDVCalendar" />
+	</feature>
+	<feature name="Device">
+		<param name="ios-package" value="CDVDevice" />
+		<param name="android-package"
+			value="org.apache.cordova.device.Device" />
+	</feature>
+	<feature name="Capture">
+		<param name="android-package" value="org.apache.cordova.Capture" />
+		<param name="ios-package" value="CDVCapture" />
+	</feature>
   <!--<gap:plugin name="com.performanceactive.plugins.camera" />-->
   <plugin name="org.apache.cordova.battery-status" source="pgb" spec="0.2.11" />
 	<!--<plugin name="org.apache.cordova.camera" source="pgb" spec="0.3.6" />-->
