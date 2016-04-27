@@ -3,7 +3,7 @@
     try {
         var filename = "fotoTest1.jpg";
         
-        navigator.camera.getPicture(onSuccess, onFail,
+        /*navigator.camera.getPicture(onSuccess, onFail,
             {
                 quality: 50,
                 destinationType: Camera.DestinationType.FILE_URI,
@@ -12,12 +12,19 @@
                 encodingType: Camera.EncodingType.JPEG,
                 correctOrientation: true,
                 saveToPhotoAlbum: true
+            });*/
+        navigator.camera.getPicture(onSuccess, onFail,
+            {
+                quality: 50, allowEdit: true,
+                destinationType: Camera.DestinationType.FILE_URI,
+                pictureSource: Camera.PictureSourceType.CAMERA,
+                encodingType: Camera.EncodingType.PNG,
+                saveToPhotoAlbum: true
             });
 
         function onSuccess(imageData)
         {
             var image = document.getElementById('tempFoto');
-            alert(image);
             image.src =  imageData;
         }
 
