@@ -2,15 +2,27 @@
 {
     try {
         var filename = "fotoTest1.jpg";
-        navigator.customCamera.getPicture(filename, function success(fileUri) {
-            alert("File location: " + fileUri);
-        }, function failure(error) {
-            alert(error);
-        }, {
-            quality: 80,
-            targetWidth: 120,
-            targetHeight: 120
+        
+        navigator.camera.getPicture(onSuccess, onFail, {
+            quality: 50,
+            destinationType: Camera.DestinationType.DATA_URL,
+            sourceType: Camera.PictureSourceType.CAMERA,
+            allowEdit: true,
+            encodingType: Camera.EncodingType.JPEG,
+            targetWidth: 100,
+            targetHeight: 100,
+            correctOrientation: true,
+            saveToPhotoAlbum: true
         });
+
+        function onSuccess(imageData) {
+            var image = document.getElementById('tempFoto');
+            image.src = "data:image/jpeg;base64," + imageData;
+        }
+
+        function onFail(message) {
+            alert('Failed because: ' + message);
+        }
     }
     catch (error)
     {
