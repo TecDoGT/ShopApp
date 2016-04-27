@@ -950,7 +950,9 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                    {
 		                        var Dia = FechaSplit[0] * 1;
 		                        var Mes = (FechaSplit[1] * 1) - 1;
-		                        var Anio = (FechaSplit[2] * 1) + 2000;
+		                        var Anio = (FechaSplit[2] * 1);
+
+		                        Anio = Anio < 2000 ? Anio + 2000 : Anio;
 
 		                        var fecha = new Date(Anio, Mes, Dia);
                                 
@@ -958,7 +960,9 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                    }
 
                             
-		                    $('<input>').attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': disableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+		                    $('<input>')
+                                .attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': disableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' })
+                                .appendTo("#PageBuilder_From");
 		                    $(idJQ).textinput();
 		                    break;
 		            }

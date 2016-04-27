@@ -94,3 +94,9 @@ tr:nth-child(even) {
     visibility:visible;
 }
 
+.formNoAplica{
+    border-width: thin;
+    border-style:solid;
+    border-radius:5px;
+    border-color:cadetblue;
+}

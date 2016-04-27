@@ -31,7 +31,7 @@
 
                     /*a*/
                     $('<input>')
-                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_a', 'value': 'a' })
+                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_a', 'value': '1' })
                         .appendTo(PreguntaID);
 
                     $('<label>')
@@ -43,7 +43,7 @@
 
                     /*b*/
                     $('<input>')
-                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_b', 'value': 'b' })
+                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_b', 'value': '2' })
                         .appendTo(PreguntaID);
 
                     $('<label>')
@@ -55,7 +55,7 @@
 
                     /*c*/
                     $('<input>')
-                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_c', 'value': 'c' })
+                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_c', 'value': '3' })
                         .appendTo(PreguntaID);
 
                     $('<label>')
@@ -64,7 +64,89 @@
                         .appendTo(PreguntaID);
 
                     $("#" + IDRes + '_c').checkboxradio();
+                    
+                    //Form de accion correctiva
+                    //inicio
+                    $('<fieldset>')
+                        .attr({ 'data-role': 'controlgroup', 'id': IDRes + '_noAplicaForm' })
+                        .appendTo(GrupoID);
+                    $('<div>').attr({ 'class': 'formNoAplica', 'id': IDRes + '_noAplicaForm_2' }).appendTo("#" + IDRes + '_noAplicaForm');
 
+                    $('<div>').attr({ 'class': 'ui-field-contain', 'id': IDRes + '_noAplicaForm_1' }).appendTo("#" + IDRes + '_noAplicaForm_2');
+                    
+                    $('<label>')
+                        .html('Fecha de Plazo:')
+                        .appendTo("#" + IDRes + '_noAplicaForm_1');
+
+                    $('<input>')
+                        .attr({ 'type': 'date', 'data-clear-btn': 'true', 'name': 'q_respuesta_accion_fecha_' + IDRes, 'id': 'q_respuesta_accion_fecha_' + IDRes })
+                        .appendTo("#" + IDRes + '_noAplicaForm_1');
+
+                    
+                    $('#q_respuesta_accion_fecha_' + IDRes).textinput();
+                    //%cumple
+                    $('<label>')
+                        .attr({ 'for': 'q_respuesta_pct_cumplimiento_' + IDRes })
+                        .html('% de Cumplimiento:')
+                        .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('<input>')
+                       .attr({ 'type': 'number', 'id': 'q_respuesta_pct_cumplimiento_' + IDRes, 'name': 'q_respuesta_pct_cumplimiento_' + IDRes })
+                       .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('#q_respuesta_pct_cumplimiento_' + IDRes).textinput();
+
+                    //AccionCorectivca
+                    $('<label>')
+                        .attr({ 'for': 'q_respuesta_accion_correctiva_' + IDRes })
+                        .html('Accion Correctiva:')
+                        .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('<input>')
+                       .attr({ 'type': 'text', 'id': 'q_respuesta_accion_correctiva_' + IDRes, 'name': 'q_respuesta_accion_correctiva_' + IDRes })
+                       .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('#q_respuesta_accion_correctiva_' + IDRes).textinput();
+
+                    //responsable
+                    $('<label>')
+                        .attr({ 'for': 'q_respuesta_accion_responsable_' + IDRes })
+                        .html('Responsable: ')
+                        .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('<input>')
+                       .attr({ 'type': 'text', 'id': 'q_respuesta_accion_responsable_' + IDRes, 'name': 'q_respuesta_accion_responsable_' + IDRes })
+                       .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('#q_respuesta_accion_responsable_' + IDRes).textinput();
+
+                    //Indicador
+                    $('<label>')
+                        .attr({ 'for': 'q_respuesta_accion_indicador_' + IDRes })
+                        .html('Indicador:')
+                        .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('<input>')
+                       .attr({ 'type': 'text', 'id': 'q_respuesta_accion_indicador_' + IDRes, 'name': 'q_respuesta_accion_indicador_' + IDRes })
+                       .appendTo("#" + IDRes + '_noAplicaForm_1');
+                    $('#q_respuesta_accion_indicador_' + IDRes).textinput();
+
+                    
+                    
+                    
+
+                    $('<input>')
+                        .attr({ 'id': 'BTN_tomarFoto_' + IDRes, 'data-role': 'button', 'type': 'button', 'value': 'Foto' })
+                        .appendTo("#" + IDRes + '_noAplicaForm_2');
+
+                    $('#BTN_tomarFoto_' + IDRes).button();
+
+                    $("#" + IDRes + '_noAplicaForm').controlgroup();
+                    //fin
+                    $("#" + IDRes + '_noAplicaForm').hide();
+                    // Eveto para desplegar Accion Correctiva
+                    var StrSelector = 'input:radio[name="' + IDRes + '"]';
+
+                    $(StrSelector).change(function ()
+                    {
+                        if ($(this).is(':checked') && $(this).val() == "2")
+                            $("#" + IDRes + '_noAplicaForm').show();
+                        else
+                            $("#" + IDRes + '_noAplicaForm').hide();
+                    });
 
                     $(PreguntaID).controlgroup();
                 });
@@ -77,5 +159,5 @@
         });
     }
 
-    $("#SC_Grupos").collapsibleset("refresh");
+    $("#SC_Grupos").collapsibleset();
 }
