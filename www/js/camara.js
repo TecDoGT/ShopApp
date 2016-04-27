@@ -1,4 +1,4 @@
-﻿function tomarFoto(fuente)
+﻿function tomarFoto(fuente, IDObject)
 {
     try {
         var filename = "fotoTest1.jpg";
@@ -17,15 +17,15 @@
             {
                 quality: 50, allowEdit: true,
                 destinationType: Camera.DestinationType.FILE_URI,
-                pictureSource: Camera.PictureSourceType.CAMERA,
+                pictureSource: fuente,
                 encodingType: Camera.EncodingType.PNG,
                 saveToPhotoAlbum: true
             });
 
         function onSuccess(imageData)
         {
-            var image = document.getElementById('tempFoto');
-            image.src =  imageData;
+            IDObject = "#" + IDObject;
+            $(IDObject).attr('src', imageData)
         }
 
         function onFail(message)
