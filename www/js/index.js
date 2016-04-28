@@ -1072,7 +1072,7 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
 
     var ListKey = GetPrimaryKey(tableName, project_id, object_id);
 
-    var NextRowID = db.MAX(tableName);
+    var NextRowID = db.MAX_TABLE(tableName);
     
     var rsLastReg = db.SELECT(tableName, { id: NextRowID - 1 });
 
@@ -1372,7 +1372,8 @@ function ClickEvent_btnSaveData()
     var tableName = window.sessionStorage.getItem("#TableName");
     var InsertMode = window.sessionStorage.getItem("#FromMode");
 
-    if (rowID != null && tableName != null) {
+    if (rowID != null && tableName != null)
+    {
         var rs = db.SELECT("ListMod", function (row) {
             return row.tablaName == tableName
         });
@@ -1411,7 +1412,7 @@ function ClickEvent_btnSaveData()
 
                 if (InsertMode == "I")
                 {
-                    var NextRowID = db.MAX(tableName);
+                    var NextRowID = db.MAX_TABLE(tableName);
                     window.sessionStorage.setItem("#RowID", NextRowID);
 
                     var rs = db.SELECT(tableName, { id: NextRowID - 1 });
@@ -1484,6 +1485,7 @@ $(document).ready(function (e) {
 
 $(document).on("pagecreate", "#IndexPage", function() 
 {
+    RemoveSessionVar();
 
     if (window.sessionStorage.UserLogin && window.sessionStorage.UserPromotor)
 	{

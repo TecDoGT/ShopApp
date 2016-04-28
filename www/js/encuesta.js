@@ -161,3 +161,131 @@
 
     $("#SC_Grupos").collapsibleset();
 }
+
+
+
+$(document).on("pagecreate", "#DLGEncuesta", function ()
+{
+    RemoveSessionVar();
+
+    $("#DLGEncuesta").bind("pagehide", function ()
+    {
+        RemoveSessionVar();
+    });
+
+    window.sessionStorage.setItem("#FromMode", "I");
+    window.sessionStorage.setItem("#TableName", "q_encuesta");
+    window.sessionStorage.setItem("#RowID", 0);
+
+    var rs = db.SELECT("q_formulario", { empresa: window.sessionStorage.UserEmpresa });
+
+    if (rs.length > 0)
+    {
+        $("<option>").attr({ 'value': 'Empty' }).html($("label[for='Q_ENCUESTA_FORMULARIO']").text()).appendTo("#Q_ENCUESTA_FORMULARIO");
+        $(rs).each(function (i, e)
+        {
+            $('<option>')
+                .attr({ 'value': e.formulario })
+                .html(e.nombre)
+                .appendTo("#Q_ENCUESTA_FORMULARIO");
+        });
+
+        $("#Q_ENCUESTA_FORMULARIO").selectmenu("refresh");
+    }
+
+    var rsP = db.SELECT("vc_productor", { empresa: window.sessionStorage.UserEmpresa });
+
+    if (rsP.length > 0)
+    {
+        $("<option>").attr({ 'value': 'Empty' }).html($("label[for='Q_ENCUESTA_PRODUCTOR']").text()).appendTo("#Q_ENCUESTA_PRODUCTOR");
+        $(rsP).each(function (i, e)
+        {
+            $('<option>')
+                .attr({ 'value': e.productor })
+                .html(e.nombre)
+                .appendTo("#Q_ENCUESTA_PRODUCTOR");
+        });
+
+        $("#Q_ENCUESTA_PRODUCTOR").selectmenu("refresh");
+    }
+
+    var rsC = db.SELECT("cosecha").ORDER_BY("cosecha DESC");
+
+    if (rsC.length > 0)
+    {
+        $("<option>").attr({ 'value': 'Empty' }).html($("label[for='Q_ENCUESTA_COSECHA']").text()).appendTo("#Q_ENCUESTA_COSECHA");
+        $(rsC).each(function (i, e)
+        {
+            $('<option>')
+                .attr({ 'value': e.cosecha })
+                .html(e.cosecha)
+                .appendTo("#Q_ENCUESTA_COSECHA");
+        });
+
+        $("#Q_ENCUESTA_COSECHA").selectmenu("refresh");
+    }
+
+    $("#Q_ENCUESTA_COSECHA").change(function ()
+    {
+        window.sessionStorage.setItem("#q_encuesta_cosecha$", $(this).val());
+    });
+
+    $("#Q_ENCUESTA_PRODUCTOR").change(function () {
+        window.sessionStorage.setItem("#P_q_encuesta_productor$", $(this).val());
+
+        $("#Q_ENCUESTA_FINCA").empty();
+
+        window.sessionStorage.removeItem("#P_q_encuesta_encuesta$");
+
+        $("#Q_ENCUESTA_ENCUESTA").val('');
+
+        var rs = db.SELECT("vc_finca", { empresa: window.sessionStorage.UserEmpresa, productor: window.sessionStorage.getItem("#P_q_encuesta_productor$") });
+
+        if (rs.length > 0) {
+            $("<option>").attr({ 'value': 'Empty' }).html($("label[for='Q_ENCUESTA_FINCA']").text()).appendTo("#Q_ENCUESTA_FINCA");
+            $(rs).each(function (i, e) {
+                $('<option>')
+                    .attr({ 'value': e.finca })
+                    .html(e.nombre)
+                    .appendTo("#Q_ENCUESTA_FINCA");
+            });
+        }
+
+        $("#Q_ENCUESTA_FINCA").selectmenu("refresh");
+    });
+
+    $("#Q_ENCUESTA_NOTA").change(function ()
+    {
+        window.sessionStorage.setItem("#q_encuesta_nota$", $(this).val());
+    });
+
+    $("#Q_ENCUESTA_FINCA").change(function ()
+    {
+        window.sessionStorage.setItem("#P_q_encuesta_finca$", $(this).val());
+
+        var maxReg = db.SELECT("q_encuesta",
+            function (row)
+            {
+                return row.empresa == window.sessionStorage.UserEmpresa
+                && row.productor == window.sessionStorage.getItem("#P_q_encuesta_productor$")
+                && row.finca == window.sessionStorage.getItem("#P_q_encuesta_finca$")
+                && row.formulario == window.sessionStorage.getItem("#P_q_encuesta_formulario$")
+            })
+            .MAX("encuesta");
+
+        maxReg = maxReg == null ? 1 : (maxReg * 1) + 1;
+
+        $("#Q_ENCUESTA_ENCUESTA").val(maxReg);
+
+        window.sessionStorage.setItem("#P_q_encuesta_encuesta$", maxReg);
+    });
+
+    $("#Q_ENCUESTA_FORMULARIO").change(function ()
+    {
+        window.sessionStorage.setItem("#P_q_encuesta_formulario$", $(this).val());
+    });
+
+    window.sessionStorage.setItem("#q_encuesta_usuario$", window.sessionStorage.UserLogin);
+    window.sessionStorage.setItem("#q_encuesta_promotor$", window.sessionStorage.UserPromotor);
+    
+});

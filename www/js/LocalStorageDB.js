@@ -40,6 +40,37 @@ License:       MIT License (see homepage)
 		// The RESULT_SET object inherits from Array
 		RESULT_SET = function () { };
         RESULT_SET.prototype = Array.prototype;
+        RESULT_SET.prototype.MAX = function (column)
+        {
+            var arr = this;
+
+            var sort = 'DESC'
+
+            arr.sort(function (a, b) {
+                var
+                ret = 0;
+                // work on copies
+                a = clone(a);
+                b = clone(b);
+                if (typeof a[column] == 'string')
+                {
+                    a = a[column].toLowerCase();
+                    b = b[column].toLowerCase();
+                    if (sort == 'ASC') {
+                        ret = a < b ? -1 : (a > b ? 1 : 0);
+                    }
+                    else {
+                        ret = a < b ? 1 : (a > b ? -1 : 0);
+                    }
+                }
+                if (typeof a[column] == 'number') {
+                    ret = sort == 'DESC' ? b[column] - a[column] : a[column] - b[column];
+                }
+                return ret;
+            });
+
+            return (arr[0] == undefined || arr[0] == null) ? null : arr[0][column];
+        };
         RESULT_SET.prototype.ORDER_BY = function (order) {
             var
 			arr = this,
@@ -377,7 +408,7 @@ License:       MIT License (see homepage)
         *
         * @param str table - the table name
         */
-        this.MAX = function (table) {
+        this.MAX_TABLE = function (table) {
             if (tableExists(table)) {
                 return load(table).index;
             }

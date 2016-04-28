@@ -82,7 +82,8 @@
         <!--Footer-->
 
     </div>
-    
+
+    <!--Page for Login-->
     <div id="LogInDialog" data-role="page" data-theme="a" data-dialog="true" data-close-btn="right">
     	<div data-role="header">
         	<h1>Iniciar Sesion</h1>
@@ -98,7 +99,8 @@
             </form>
         </div>
     </div>
-    
+
+    <!--Index system page-->
     <div id="IndexPage" data-role="page" data-theme="a" class="ui-responsive-panel">
     	<div data-role="panel" id="pMenu"  data-display="overlay">
           <h2>Men&uacute;</h2>
@@ -107,7 +109,7 @@
             <li><a class="messi-titlebox anim error ui-btn ui-shadow ui-icon-delete ui-btn-icon-right" style="border-radius:0; font-size:17px; color:#FFFFFF" href="#IndexPage" data-rel="close" id="btnViewCat">"Drop Data Base"</a></li>
             <li><a href="#IndexPage" data-rel="close" id="btnUpdateData" class="ui-btn ui-shadow ui-icon-cloud ui-btn-icon-right">Sincronizar</a></li>
             <li><a href="#page-home" data-rel="close" id="btnLogOut" class="ui-btn ui-shadow ui-icon-power ui-btn-icon-right">Cerrar Seccion</a></li>
-            <li><a href="#EncuentaBuilder" data-rel="close"class="ui-btn ui-shadow ui-icon-power ui-btn-icon-right" onclick="CreateListaChequeo(1);">encuesta</a></li>  
+            <li><a href="#DLGEncuesta" data-rel="close"class="ui-btn ui-shadow ui-icon-star ui-btn-icon-right">Encuesta Nueva</a></li>  
             <li><a onclick="tomarFoto(1, 'tempFoto');" data-rel="close" class="ui-btn ui-shadow ui-icon-camera ui-btn-icon-right">Foto</a></li>
           </ul>
         </div>
@@ -145,7 +147,7 @@
         </div>
     </div>
     
-        
+    <!--page for build forms and grid-->    
     <div id="PageBuilder" data-role="page" data-theme="a" class="ui-responsive-panel">
 
         <div data-role="panel" id="pMenu_PageBuilder" data-display="overlay" data-position="right">
@@ -186,6 +188,7 @@
         </div>
     </div>
 
+    <!--Encuesta (pagina especial.)-->
     <div id="EncuentaBuilder" data-role="page"data-theme="a">
         <div data-role="header">
             <a data-rel="back" class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline  ui-btn-left">Atras</a>
@@ -205,6 +208,28 @@
         </div>
         <div data-role="content">
             <img src="" id="ImgTempDisplay" />
+        </div>
+    </div>
+
+    <!--Dialogo para la crear encuesta -->
+    <div id="DLGEncuesta" data-role="page" data-dialog="true" data-theme="a" data-close-btn="right">
+        <div data-role="header">
+            <h1>Nueva Encuesta</h1>
+        </div>
+        <div data-role="content">
+            <label for="Q_ENCUESTA_FORMULARIO">Formulario</label>
+            <select name="Q_ENCUESTA_FORMULARIO" id="Q_ENCUESTA_FORMULARIO"></select>
+            <label for="Q_ENCUESTA_PRODUCTOR">Productor</label>
+            <select name="Q_ENCUESTA_PRODUCTOR" id="Q_ENCUESTA_PRODUCTOR"></select>
+            <label for="Q_ENCUESTA_FINCA">Finca</label>
+            <select name="Q_ENCUESTA_FINCA" id="Q_ENCUESTA_FINCA"></select>
+            <label for="Q_ENCUESTA_ENCUESTA">No. Encuesta</label>
+            <input type="number" disabled="disabled" id="Q_ENCUESTA_ENCUESTA"/>
+            <label for="Q_ENCUESTA_COSECHA">Cosecha</label>
+            <select name="Q_ENCUESTA_COSECHA" id="Q_ENCUESTA_COSECHA"></select>
+            <label for="Q_ENCUESTA_NOTA">Nota</label>
+            <input type="text" id="Q_ENCUESTA_NOTA" />
+            <input type="button" value="Crear Encuesta" onclick="" />
         </div>
     </div>
 

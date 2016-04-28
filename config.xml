@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="com.ls.vway" version="0.1.74">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="com.ls.vway" version="0.1.75">
   <name>Vway</name>
   <description>Aplicacion para visitas a l Exterior</description>
   <author href="http://phonegap.com" email="gs@ls-sy.com">ls-sys</author>
@@ -54,10 +54,8 @@
 		<param name="android-package" value="org.apache.cordova.Capture" />
 		<param name="ios-package" value="CDVCapture" />
 	</feature>
-  <!--<gap:plugin name="com.performanceactive.plugins.camera" />-->
+  
   <plugin name="org.apache.cordova.battery-status" source="pgb" spec="0.2.11" />
-	<!--<plugin name="org.apache.cordova.camera" source="pgb" spec="0.3.6" />-->
-  <!--<plugin name="cordova-plugin-camera" spec="1.2.0" source="pgb" />-->
   <gap:plugin name="cordova-plugin-camera"/>
 	<plugin name="org.apache.cordova.console" source="pgb" spec="0.2.11" />
 	<plugin name="org.apache.cordova.contacts" source="pgb" spec="0.2.13" />

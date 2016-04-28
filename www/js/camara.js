@@ -1,8 +1,6 @@
 ﻿function tomarFoto(fuente, IDObject)
 {
-    try {
-        var filename = "fotoTest1.jpg";
-        
+    try {        
         /*navigator.camera.getPicture(onSuccess, onFail,
             {
                 quality: 50,
@@ -30,7 +28,7 @@
 
         function onFail(message)
         {
-            alert('Failed because: ' + message);
+            Mensage('Failed because: ' + message);
         }
     }
     catch (error)
