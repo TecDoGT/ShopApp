@@ -1,4 +1,4 @@
-﻿function CreateListaChequeo(idFormulario) {
+﻿function CreateListaChequeo(idFormulario, idEncuesta) {
     $("#SC_Grupos").empty();
 
     var rsGrupo = db.SELECT("q_grupo", { empresa: window.sessionStorage.UserEmpresa, formulario: idFormulario }).ORDER_BY('orden ASC');
@@ -13,9 +13,19 @@
             var tempID = '#Grupo_' + eG.group
 
             var rsPregunta = db.SELECT("q_pregunta", { empresa: window.sessionStorage.UserEmpresa, formulario: idFormulario, grupo: eG.grupo });
+            var rsRespuestas = db.SELECT("q_respuesta",
+                {
+                    empresa: window.sessionStorage.UserEmpresa,
+                    formulario: idFormulario,
+                    grupo: eG.grupo,
+                    encuesta: idEncuesta
+                });
 
-            if (rsPregunta.length > 0) {
+            if (rsPregunta.length > 0 && rsRespuestas.length > 0)
+            {
                 $(rsPregunta).each(function (iP, eP) {
+                    window.sessionStorage.setItem("#P_q_encuesta_formulario$", idFormulario);
+                    window.sessionStorage.setItem("#P_q_encuesta_encuesta$", idEncuesta);
                     var GrupoID = '#Grupo_' + eP.grupo;
                     var PreguntaID = 'Pregunta_' + eP.grupo + "_" + eP.pregunta;
                     var IDRes = PreguntaID + "_res";
@@ -29,9 +39,11 @@
                         .attr({ 'onclick': 'Mensage("' + eP.ayuda + '")' })
                         .html(eP.nombre).appendTo(PreguntaID);
 
+                    var ValRes = (rsRespuestas[iP].opcion == undefined) ? null : rsRespuestas[iP].opcion;
+
                     /*a*/
                     $('<input>')
-                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_a', 'value': '1' })
+                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_a', 'value': '1', 'checked': (ValRes == 1) })
                         .appendTo(PreguntaID);
 
                     $('<label>')
@@ -43,7 +55,7 @@
 
                     /*b*/
                     $('<input>')
-                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_b', 'value': '2' })
+                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_b', 'value': '2', 'checked': (ValRes == 2) })
                         .appendTo(PreguntaID);
 
                     $('<label>')
@@ -55,7 +67,7 @@
 
                     /*c*/
                     $('<input>')
-                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_c', 'value': '3' })
+                        .attr({ 'type': 'radio', 'name': IDRes, 'id': IDRes + '_c', 'value': '3', 'checked': (ValRes == 3) })
                         .appendTo(PreguntaID);
 
                     $('<label>')
@@ -64,7 +76,7 @@
                         .appendTo(PreguntaID);
 
                     $("#" + IDRes + '_c').checkboxradio();
-                    
+
                     //Form de accion correctiva
                     //inicio
                     $('<fieldset>')
@@ -73,7 +85,7 @@
                     $('<div>').attr({ 'class': 'formNoAplica', 'id': IDRes + '_noAplicaForm_2' }).appendTo("#" + IDRes + '_noAplicaForm');
 
                     $('<div>').attr({ 'class': 'ui-field-contain', 'id': IDRes + '_noAplicaForm_1' }).appendTo("#" + IDRes + '_noAplicaForm_2');
-                    
+
                     $('<label>')
                         .html('Fecha de Plazo:')
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
@@ -82,7 +94,7 @@
                         .attr({ 'type': 'date', 'data-clear-btn': 'true', 'name': 'q_respuesta_accion_fecha_' + IDRes, 'id': 'q_respuesta_accion_fecha_' + IDRes })
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
 
-                    
+
                     $('#q_respuesta_accion_fecha_' + IDRes).textinput();
                     //%cumple
                     $('<label>')
@@ -124,9 +136,9 @@
                        .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('#q_respuesta_accion_indicador_' + IDRes).textinput();
 
-                    
-                    
-                    
+
+
+
 
                     $('<input>')
                         .attr({ 'id': 'BTN_tomarFoto_' + IDRes, 'data-role': 'button', 'type': 'button', 'value': 'Foto' })
@@ -140,7 +152,7 @@
                     // Eveto para desplegar Accion Correctiva
                     var StrSelector = 'input:radio[name="' + IDRes + '"]';
 
-                    $(StrSelector).change(function ()
+                    $(StrSelector).on("click", function ()
                     {
                         if ($(this).is(':checked') && $(this).val() == "2")
                             $("#" + IDRes + '_noAplicaForm').show();
@@ -150,8 +162,6 @@
 
                     $(PreguntaID).controlgroup();
                 });
-
-
             }
 
             $(tempID).collapsible();
@@ -162,7 +172,38 @@
     $("#SC_Grupos").collapsibleset();
 }
 
+function saveEncuesta()
+{
+    var rs = db.SELECT("q_respuesta",
+        {
+            empresa: window.sessionStorage.UserEmpresa,
+            formulario: window.sessionStorage.getItem("#P_q_encuesta_formulario$"),
+            encuesta: window.sessionStorage.getItem("#P_q_encuesta_encuesta$")
+        });
 
+    try
+    {
+        if (rs.length > 0)
+        {
+            $(rs).each(function (i, e)
+            {
+                var idSelector = "input:radio[name='Pregunta_" + e.grupo + "_" + e.pregunta + "_res']:checked"
+
+                var temp = $(idSelector).val();
+
+                temp = (temp == undefined) ? null : temp * 1;
+
+                db.UPDATE("q_respuesta", { opcion: temp, modifica: 1, sinc: 0 }, { id: e.id });
+            });
+
+            Mensage("Datos Guardados...");
+        }
+    }
+    catch (error)
+    {
+        Mensage(error);
+    }
+}
 
 $(document).on("pagecreate", "#DLGEncuesta", function ()
 {
@@ -170,12 +211,29 @@ $(document).on("pagecreate", "#DLGEncuesta", function ()
 
     $("#DLGEncuesta").bind("pagehide", function ()
     {
+        var temp1 = window.sessionStorage.getItem("#P_q_encuesta_formulario$");
+        var temp2 = window.sessionStorage.getItem("#P_q_encuesta_encuesta$");
         RemoveSessionVar();
+
+        window.sessionStorage.setItem("#P_q_encuesta_formulario$", temp1);
+        window.sessionStorage.setItem("#P_q_encuesta_encuesta$", temp2);
     });
 
     window.sessionStorage.setItem("#FromMode", "I");
     window.sessionStorage.setItem("#TableName", "q_encuesta");
     window.sessionStorage.setItem("#RowID", 0);
+
+    var now = new Date();
+
+    var day = ("0" + now.getDate()).slice(-2);
+    var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+    var today = now.getFullYear() + "-" + (month) + "-" + (day);
+
+    $("#Q_ENCUESTA_FECHA").val(today);
+    $("#Q_ENCUESTA_PROMOTOR").val(window.sessionStorage.getItem("UserPromotor"));
+    $("#Q_ENCUESTA_ENCUESTADOR").val(window.sessionStorage.getItem("UserPromotor"));
+    $("#Q_ENCUESTA_EMPRESA").val(window.sessionStorage.getItem("UserEmpresa"));
 
     var rs = db.SELECT("q_formulario", { empresa: window.sessionStorage.UserEmpresa });
 
@@ -267,8 +325,6 @@ $(document).on("pagecreate", "#DLGEncuesta", function ()
             function (row)
             {
                 return row.empresa == window.sessionStorage.UserEmpresa
-                && row.productor == window.sessionStorage.getItem("#P_q_encuesta_productor$")
-                && row.finca == window.sessionStorage.getItem("#P_q_encuesta_finca$")
                 && row.formulario == window.sessionStorage.getItem("#P_q_encuesta_formulario$")
             })
             .MAX("encuesta");
@@ -287,5 +343,13 @@ $(document).on("pagecreate", "#DLGEncuesta", function ()
 
     window.sessionStorage.setItem("#q_encuesta_usuario$", window.sessionStorage.UserLogin);
     window.sessionStorage.setItem("#q_encuesta_promotor$", window.sessionStorage.UserPromotor);
+
+    $("#btn_CrearEncuestaSC").on("click", function ()
+    {
+        ClickEvent_btnSaveData();
+        window.location = "#EncuentaBuilder";
+        CreateListaChequeo(window.sessionStorage.getItem("#P_q_encuesta_formulario$"), window.sessionStorage.getItem("#P_q_encuesta_encuesta$"));
+
+    });
     
 });

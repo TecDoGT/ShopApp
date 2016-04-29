@@ -193,6 +193,7 @@
         <div data-role="header">
             <a data-rel="back" class="ui-btn ui-shadow ui-corner-all ui-icon-back ui-btn-icon-left ui-btn-a ui-btn-inline  ui-btn-left">Atras</a>
             <h1 id="lHEncuestaB">Encuesta</h1>
+            <a class="ui-btn ui-shadow ui-corner-all ui-icon-check ui-btn-icon-left ui-btn-a ui-btn-inline ui-btn-right" onclick="saveEncuesta();">Guardar</a>
         </div>
 
         <div data-role="content">
@@ -227,9 +228,15 @@
             <input type="number" disabled="disabled" id="Q_ENCUESTA_ENCUESTA"/>
             <label for="Q_ENCUESTA_COSECHA">Cosecha</label>
             <select name="Q_ENCUESTA_COSECHA" id="Q_ENCUESTA_COSECHA"></select>
+            <label for="Q_ENCUESTA_FECHA">Fecha</label>
+            <input type="date" id="Q_ENCUESTA_FECHA" />
             <label for="Q_ENCUESTA_NOTA">Nota</label>
             <input type="text" id="Q_ENCUESTA_NOTA" />
-            <input type="button" value="Crear Encuesta" onclick="" />
+            <input type="button" value="Crear Encuesta" id="btn_CrearEncuestaSC"/>
+            <input type="hidden" id="Q_ENCUESTA_PROMOTOR" />
+            <input type="hidden" id="Q_ENCUESTA_ENCUESTADOR" />
+            <input type="hidden" id="Q_ENCUESTA_EMPRESA" />
+            <input type="hidden" id="Q_ENCUESTA_ESTADO" value="1" />
         </div>
     </div>
 

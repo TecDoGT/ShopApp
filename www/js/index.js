@@ -238,6 +238,7 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					var $xml = $(data);
 								
 					var DataInsert = "[";
+					var refTable = db.DESCRIBE(TableName);
 					$xml.find("ROW").each(function(index, element) 
 					{
 						var $Sdata = $(this);
@@ -247,7 +248,14 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 							var $subData = $(this);
 							var temp = $subData[0].nodeName + "";
 							temp = temp.toLowerCase();
-							DataInsert += ' "' + temp + '": "' + $subData.text() + '", ' ;
+
+							if (typeof refTable[temp] == 'number')
+							{
+							    var tempData = $subData.text();
+							    DataInsert += ' "' + temp + '": ' + ((tempData == "Empty") ? null : tempData * 1) + ', ';
+							}
+							else
+							    DataInsert += ' "' + temp + '": "' + $subData.text() + '", ';
 						});
 						
 						DataInsert += "}";
@@ -946,7 +954,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                    InputValue = InputValue + "";
 
 		                    var FechaSplit = InputValue.split("-");
-		                    if (FechaSplit.length > 0)
+		                    if (FechaSplit.length > 0 && FechaSplit[0].length == 2)
 		                    {
 		                        var Dia = FechaSplit[0] * 1;
 		                        var Mes = (FechaSplit[1] * 1) - 1;
@@ -1030,7 +1038,14 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		        case "q_encuesta":
 		            
 		            $('<input>')
-                        .attr({ 'id': 'BTN_qEncuesta', 'data-role': 'button', 'type': 'button', 'value': 'Encuesta', 'onclick': 'window.location = "#EncuentaBuilder"' })
+                        .attr(
+                        {
+                            'id': 'BTN_qEncuesta',
+                            'data-role': 'button',
+                            'type': 'button',
+                            'value': 'Encuesta',
+                            'onclick': 'window.location = "#EncuentaBuilder"; CreateListaChequeo(' + window.sessionStorage.getItem("#P_q_encuesta_formulario$") + ', ' + window.sessionStorage.getItem("#P_q_encuesta_encuesta$") + ');'
+                        })
                         .appendTo("#PageBuilder_From");
 		            $('#BTN_qEncuesta').button();
 		            break;
@@ -1389,7 +1404,8 @@ function ClickEvent_btnSaveData()
 
             var updateArray = "{";
 
-            if (rsDef.length > 0) {
+            if (rsDef.length > 0)
+            {
                 $(rsDef).each(function (index, ele) {
                     var ObjID = ele.id_obj;
                     var colName = ObjID.toLowerCase().replace(tableName + "_", "");
@@ -1405,7 +1421,9 @@ function ClickEvent_btnSaveData()
                     if (colName == "usuario")
                         updateArray += '"usuario": "' + window.sessionStorage.getItem("UserLogin") + '", ';
                     else
-                        updateArray += '"' + colName + '": "' + InValue + '", ';
+                    {
+                        updateArray += '"' + colName + '": "' + ((InValue == undefined) ? null : InValue) + '", ';
+                    }
                 });
 
                 updateArray += "}";
@@ -1415,13 +1433,43 @@ function ClickEvent_btnSaveData()
                     var NextRowID = db.MAX_TABLE(tableName);
                     window.sessionStorage.setItem("#RowID", NextRowID);
 
-                    var rs = db.SELECT(tableName, { id: NextRowID - 1 });
-
                     updateArray = updateArray.replace(", }", ', "fuente": 2, "modifica": 1, "sinc": 0}');
 
                     var InssertArray = updateArray.replace("{", "[{").replace("}", "}]");
 
                     db.INSERT_INTO(tableName, JSON.parse(InssertArray));
+
+                    if (tableName == "q_encuesta")
+                    {
+                        var arrColl = ["empresa", "formulario", "grupo", "pregunta"];
+
+                        var triggerRS = db.SELECT("q_pregunta", function (row)
+                        {
+                            return row.empresa == window.sessionStorage.getItem("UserEmpresa")
+                            && row.formulario == window.sessionStorage.getItem("#P_q_encuesta_formulario$");
+                        });
+
+                        if (triggerRS.length > 0)
+                        {
+
+                            var SetToInsert = [];
+                            var SelectToInsert = {};
+                            $(triggerRS).each(function (i, e)
+                            {
+                                $.each(arrColl, function (j, val)
+                                {
+                                    SelectToInsert[val] = e[val];
+                                });
+
+                                SelectToInsert["encuesta"] = window.sessionStorage.getItem("#P_q_encuesta_encuesta$") * 1;
+
+                                SetToInsert.push(SelectToInsert);
+                                SelectToInsert = {};
+                            });
+
+                            db.INSERT_INTO("q_respuesta", SetToInsert);
+                        }
+                    }
                 }
                 else
                 {
@@ -1548,7 +1596,6 @@ $(document).on("pagecreate", "#IndexPage", function()
 					DownLoadDataSave(55, 83, "", "DEPARTAMENTO", 0, ""); 
 					DownLoadDataSave(55, 84, "", "CIUDAD", 0, ""); 
 					DownLoadDataSave(55, 45, "", "VC_VARIEDAD", 0, ""); 
-					DownLoadDataSave(55, 48, "", "VC_CERTIFICACION", 0, ""); 
 					//DownLoadDataSave(55, 100, "", "VC_ACTIVIDAD_PROMOTOR", 0, "");
 
 					
