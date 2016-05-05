@@ -183,17 +183,49 @@ function saveEncuesta()
 
     try
     {
+        var listObj = ["q_respuesta_accion_fecha_", "q_respuesta_pct_cumplimiento_", "q_respuesta_accion_correctiva_", "q_respuesta_accion_responsable_", "q_respuesta_accion_indicador_"];
         if (rs.length > 0)
         {
+            var TableDef = db.DESCRIBE("q_respuesta");
+
             $(rs).each(function (i, e)
             {
-                var idSelector = "input:radio[name='Pregunta_" + e.grupo + "_" + e.pregunta + "_res']:checked"
+                var ResIDTemp = "Pregunta_" + e.grupo + "_" + e.pregunta + "_res";
+                var idSelector = "input:radio[name='" + ResIDTemp + "']:checked";
 
                 var temp = $(idSelector).val();
 
                 temp = (temp == undefined) ? null : temp * 1;
 
                 db.UPDATE("q_respuesta", { opcion: temp, modifica: 1, sinc: 0 }, { id: e.id });
+
+                $.each(listObj, function (j, val)
+                {
+                    var SubResID = val + ResIDTemp;
+
+                    var SubTempVal = $("#" + SubResID).val();
+
+                    SubTempVal = (SubTempVal == undefined) ? null : SubTempVal;
+
+                    var CampoTemp = SubResID.replace("q_respuesta_", "").replace("_" + ResIDTemp, "");
+
+                    var StrUpdate = "";
+
+                    if (typeof TableDef[CampoTemp] == 'number')
+                    {
+                        SubTempVal = SubTempVal * 1;
+
+                        StrUpdate = "{\"" + CampoTemp + "\": " + SubTempVal + ", \"modifica\": 1, \"sinc\": 0}";
+                    }
+                    else
+                    {
+                        StrUpdate = "{\"" + CampoTemp + "\": \"" + SubTempVal + "\", \"modifica\": 1, \"sinc\": 0}";
+                    }
+
+                    db.UPDATE("q_respuesta", JSON.parse(StrUpdate), { id: e.id });
+
+                    
+                });
             });
 
             Mensage("Datos Guardados...");
