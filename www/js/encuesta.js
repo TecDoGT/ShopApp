@@ -1,10 +1,13 @@
-﻿function CreateListaChequeo(idFormulario, idEncuesta) {
+﻿function CreateListaChequeo(idFormulario, idEncuesta)
+{
     $("#SC_Grupos").empty();
 
     var rsGrupo = db.SELECT("q_grupo", { empresa: window.sessionStorage.UserEmpresa, formulario: idFormulario }).ORDER_BY('orden ASC');
 
-    if (rsGrupo.length > 0) {
-        $(rsGrupo).each(function (iG, eG) {
+    if (rsGrupo.length > 0)
+    {
+        $(rsGrupo).each(function (iG, eG)
+        {
             $('<fieldset>')
                 .attr({ 'data-role': 'collapsible', 'id': 'Grupo_' + eG.grupo })
                 .html('<legend>' + eG.nombre + '</legend>')
@@ -80,7 +83,7 @@
                     //Form de accion correctiva
                     //inicio
 
-                    
+
                     $('<fieldset>')
                         .attr({ 'data-role': 'controlgroup', 'id': IDRes + '_noAplicaForm' })
                         .appendTo(GrupoID);
@@ -174,8 +177,7 @@
                     // Eveto para desplegar Accion Correctiva
                     var StrSelector = 'input:radio[name="' + IDRes + '"]';
 
-                    $(StrSelector).on("click", function ()
-                    {
+                    $(StrSelector).on("click", function () {
                         if ($(this).is(':checked') && $(this).val() == "2")
                             $("#" + IDRes + '_noAplicaForm').show();
                         else
@@ -192,75 +194,76 @@
     }
 
     $("#SC_Grupos").collapsibleset();
+    
+   
 }
 
 function saveEncuesta()
 {
+    $("body").css("cursor", "wait");
     $("#loadingAJAX").show();
-            $("#AJAXLoadLabel").text("Guardando Datos");
-    var rs = db.SELECT("q_respuesta",
+    $("#AJAXLoadLabel").text("Guardando Datos");
+
+    setTimeout(function ()
+    {
+        var rs = db.SELECT("q_respuesta",
         {
             empresa: window.sessionStorage.UserEmpresa,
             formulario: window.sessionStorage.getItem("#P_q_encuesta_formulario$"),
             encuesta: window.sessionStorage.getItem("#P_q_encuesta_encuesta$")
         });
 
-    try
-    {
-        var listObj = ["q_respuesta_accion_fecha_", "q_respuesta_pct_cumplimiento_", "q_respuesta_accion_correctiva_", "q_respuesta_accion_responsable_", "q_respuesta_accion_indicador_"];
-        if (rs.length > 0)
-        {
-            var TableDef = db.DESCRIBE("q_respuesta");
-            
-            $(rs).each(function (i, e)
-            {
-                var ResIDTemp = "Pregunta_" + e.grupo + "_" + e.pregunta + "_res";
-                var idSelector = "input:radio[name='" + ResIDTemp + "']:checked";
+        try {
+            var listObj = ["q_respuesta_accion_fecha_", "q_respuesta_pct_cumplimiento_", "q_respuesta_accion_correctiva_", "q_respuesta_accion_responsable_", "q_respuesta_accion_indicador_"];
+            if (rs.length > 0) {
+                var TableDef = db.DESCRIBE("q_respuesta");
 
-                var temp = $(idSelector).val();
+                $(rs).each(function (i, e) {
+                    var ResIDTemp = "Pregunta_" + e.grupo + "_" + e.pregunta + "_res";
+                    var idSelector = "input:radio[name='" + ResIDTemp + "']:checked";
 
-                temp = (temp == undefined) ? null : temp * 1;
+                    var temp = $(idSelector).val();
 
-                db.UPDATE("q_respuesta", { opcion: temp, modifica: 1, sinc: 0, usuario: window.sessionStorage.getItem("UserLogin") }, { id: e.id });
+                    temp = (temp == undefined) ? null : temp * 1;
 
-                $.each(listObj, function (j, val)
-                {
-                    var SubResID = val + ResIDTemp;
+                    db.UPDATE("q_respuesta", { opcion: temp, modifica: 1, sinc: 0, usuario: window.sessionStorage.getItem("UserLogin") }, { id: e.id });
 
-                    var SubTempVal = $("#" + SubResID).val();
+                    $.each(listObj, function (j, val) {
+                        var SubResID = val + ResIDTemp;
 
-                    SubTempVal = (SubTempVal == undefined) ? null : SubTempVal;
+                        var SubTempVal = $("#" + SubResID).val();
 
-                    var CampoTemp = SubResID.replace("q_respuesta_", "").replace("_" + ResIDTemp, "");
+                        SubTempVal = (SubTempVal == undefined) ? null : SubTempVal;
 
-                    var StrUpdate = "";
+                        var CampoTemp = SubResID.replace("q_respuesta_", "").replace("_" + ResIDTemp, "");
 
-                    if (typeof TableDef[CampoTemp] == 'number')
-                    {
-                        SubTempVal = SubTempVal * 1;
+                        var StrUpdate = "";
 
-                        StrUpdate = "{\"" + CampoTemp + "\": " + SubTempVal + ", \"modifica\": 1, \"sinc\": 0, \"usuario\": \"" + window.sessionStorage.getItem("UserLogin") + "\"}";
-                    }
-                    else
-                    {
-                        StrUpdate = "{\"" + CampoTemp + "\": \"" + SubTempVal + "\", \"modifica\": 1, \"sinc\": 0, \"usuario\": \"" + window.sessionStorage.getItem("UserLogin") + "\"}";
-                    }
+                        if (typeof TableDef[CampoTemp] == 'number') {
+                            SubTempVal = SubTempVal * 1;
 
-                    db.UPDATE("q_respuesta", JSON.parse(StrUpdate), { id: e.id });
+                            StrUpdate = "{\"" + CampoTemp + "\": " + SubTempVal + ", \"modifica\": 1, \"sinc\": 0, \"usuario\": \"" + window.sessionStorage.getItem("UserLogin") + "\"}";
+                        }
+                        else {
+                            StrUpdate = "{\"" + CampoTemp + "\": \"" + SubTempVal + "\", \"modifica\": 1, \"sinc\": 0, \"usuario\": \"" + window.sessionStorage.getItem("UserLogin") + "\"}";
+                        }
 
-                    
+                        db.UPDATE("q_respuesta", JSON.parse(StrUpdate), { id: e.id });
+
+
+                    });
                 });
-            });
-            
-            Mensage("Datos Guardados...");
+
+                Mensage("Datos Guardados...");
+            }
         }
-    }
-    catch (error)
-    {
-        Mensage(error);
-    }
-    $("#loadingAJAX").slideUp(500);
-            $("#AJAXLoadLabel").text("");
+        catch (error) {
+            Mensage(error);
+        }
+        $("#loadingAJAX").slideUp(500);
+        $("#AJAXLoadLabel").text("");
+        $("body").css("cursor", "default");
+    }, 10);
 }
 
 $(document).on("pagecreate", "#DLGEncuesta", function ()
@@ -382,8 +385,8 @@ $(document).on("pagecreate", "#DLGEncuesta", function ()
         var maxReg = db.SELECT("q_encuesta",
             function (row)
             {
-                return row.empresa == window.sessionStorage.UserEmpresa
-                && row.formulario == window.sessionStorage.getItem("#P_q_encuesta_formulario$")
+                return row.empresa == window.sessionStorage.UserEmpresa * 1
+                && row.formulario == window.sessionStorage.getItem("#P_q_encuesta_formulario$") * 1
             })
             .MAX("encuesta");
 
@@ -404,10 +407,20 @@ $(document).on("pagecreate", "#DLGEncuesta", function ()
 
     $("#btn_CrearEncuestaSC").on("click", function ()
     {
-        ClickEvent_btnSaveData();
-        window.location = "#EncuentaBuilder";
-        CreateListaChequeo(window.sessionStorage.getItem("#P_q_encuesta_formulario$"), window.sessionStorage.getItem("#P_q_encuesta_encuesta$"));
+        $("body").css("cursor", "wait");
+        $("#loadingAJAX").show();
+        $("#AJAXLoadLabel").text("Guardando Datos");
 
+        setTimeout(function ()
+        {
+            ClickEvent_btnSaveData();
+            window.location = "#EncuentaBuilder";
+            CreateListaChequeo(window.sessionStorage.getItem("#P_q_encuesta_formulario$"), window.sessionStorage.getItem("#P_q_encuesta_encuesta$"));
+
+            $("#loadingAJAX").slideUp(500);
+            $("#AJAXLoadLabel").text("");
+            $("body").css("cursor", "default");
+        }, 10);
     });
     
 });

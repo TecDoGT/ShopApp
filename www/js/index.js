@@ -276,6 +276,7 @@ function DownLoadDataSave(Project_Id, Object_Id, strWhere, TableName, Forma, Pag
 					
 					db.INSERT_INTO("ListMod", [{tablaName: TableName, neadForm: Forma, sinc: 1, formTitle: PageTitle, project_id: Project_Id, object_id: Object_Id}]);				
 					$("#dMessageBDDone").show();
+					$("#btnDBDown").hide();
 
 					
 
@@ -469,6 +470,8 @@ function SendData2DB()
             Mensage(strTablas);
 
             $("#loadingAJAX").hide();
+            DropDataBase("KannelMovil");
+            $("#btnDBDown").trigger("click");
         }, "json")
         .fail(function (qXHR, textStatus, errorThrown)
         {
@@ -1052,7 +1055,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
                             'data-role': 'button',
                             'type': 'button',
                             'value': 'Encuesta',
-                            'onclick': 'window.location = "#EncuentaBuilder"; CreateListaChequeo(' + window.sessionStorage.getItem("#P_q_encuesta_formulario$") + ', ' + window.sessionStorage.getItem("#P_q_encuesta_encuesta$") + ');'
+                            'onclick': 'LoadEncuestaFForm();'
                         })
                         .appendTo("#PageBuilder_From");
 		            $('#BTN_qEncuesta').button();
@@ -1067,6 +1070,23 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		$("#btnSaveData").show();
 		$("#btnNewReg").hide();
 	}
+}
+
+function LoadEncuestaFForm()
+{
+    $("body").css("cursor", "wait");
+    $("#loadingAJAX").show();
+    $("#AJAXLoadLabel").text("Guardando Datos");
+
+    setTimeout(function ()
+    {
+        window.location = "#EncuentaBuilder";
+        CreateListaChequeo(window.sessionStorage.getItem("#P_q_encuesta_formulario$"), window.sessionStorage.getItem("#P_q_encuesta_encuesta$"));
+
+        $("#loadingAJAX").slideUp(500);
+        $("#AJAXLoadLabel").text("");
+        $("body").css("cursor", "default");
+    }, 10);
 }
 
 /*
@@ -1323,6 +1343,7 @@ function RefreshIndex()
 	$("#btnUpdateData").show();
 	$("#dMessageBDDone").hide();
 	$("#btnDBDown").hide();
+	$("#btn_NewEncuestaDLG").show();
 			
 	var rsDos = db.SELECT("Object_Det_Movil", function (row) 
 	{
@@ -1386,6 +1407,7 @@ function RefreshIndex()
 		$("#btnDBDown").show();
 		$("#btnViewCat").hide();
 		$("#btnUpdateData").hide();
+		$("#btn_NewEncuestaDLG").hide();
 	}
 }
 
@@ -1401,6 +1423,8 @@ function ClickEvent_btnSaveData()
             return row.tablaName == tableName
         });
 
+        var defTable = db.DESCRIBE(tableName);
+        
         if (rs.length > 0) {
             var pID = rs[0].project_id;
             var oID = rs[0].object_id;
@@ -1430,7 +1454,13 @@ function ClickEvent_btnSaveData()
                         updateArray += '"usuario": "' + window.sessionStorage.getItem("UserLogin") + '", ';
                     else
                     {
-                        updateArray += '"' + colName + '": "' + ((InValue == undefined) ? null : InValue) + '", ';
+                        if (typeof defTable[colName] == 'number')
+                        {
+                            InValue = ((InValue == undefined) ? null : InValue * 1);
+                            updateArray += '"' + colName + '": ' + ((InValue == NaN) ? null : InValue) + ', ';
+                        }
+                        else
+                            updateArray += '"' + colName + '": "' + ((InValue == undefined) ? null : InValue) + '", ';
                     }
                 });
 
@@ -1561,6 +1591,7 @@ $(document).on("pagecreate", "#IndexPage", function()
         $("#btnViewCat").show();
         $("#btnUpdateData").show();
         $("#dMessageBDDone").hide();
+        $("#btn_NewEncuestaDLG").show();
 
         $("#btnLogOut").click(function (e)
         {
