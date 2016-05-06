@@ -417,18 +417,26 @@ function SendData2DB()
                     delete e.modifica;
                     delete e.sinc;
 
+                    var Columns = Object.keys(e);
+
+                    $(Columns).each(function (j, val)
+                    {
+                        if (e[val] == "" || e[val] == null || e[val] == undefined)
+                            delete e[val];
+                    });
+                    
                     TempData.push(e);
                 });
+
+                var info = {
+                    "tablaName": ele.tablaName,
+                    "project_id": ele.project_id,
+                    "object_id": ele.object_id,
+                    "data": TempData
+                };
+
+                ListTables.push(info);
             }
-
-            var info =  {
-                            "tablaName": ele.tablaName,
-                            "project_id": ele.project_id,
-                            "object_id": ele.object_id,
-                            "data": TempData
-                        };
-
-            ListTables.push(info);
         });
         var empresaVal = window.sessionStorage.getItem("UserEmpresa");
         var usrVal = window.sessionStorage.getItem("UserLogin");
@@ -1433,7 +1441,7 @@ function ClickEvent_btnSaveData()
                     var NextRowID = db.MAX_TABLE(tableName);
                     window.sessionStorage.setItem("#RowID", NextRowID);
 
-                    updateArray = updateArray.replace(", }", ', "fuente": 2, "modifica": 1, "sinc": 0}');
+                    updateArray = updateArray.replace(", }", ', "fuente": 2, "modifica": 1, "sinc": 0, "usuario": "' + window.sessionStorage.getItem("UserLogin") + '"}');
 
                     var InssertArray = updateArray.replace("{", "[{").replace("}", "}]");
 
@@ -1462,6 +1470,10 @@ function ClickEvent_btnSaveData()
                                 });
 
                                 SelectToInsert["encuesta"] = window.sessionStorage.getItem("#P_q_encuesta_encuesta$") * 1;
+                                SelectToInsert["fuente"] = 2;
+                                SelectToInsert["sinc"] = 0;
+                                SelectToInsert["modifica"] = 0;
+                                SelectToInsert["usuario"] = window.sessionStorage.getItem("UserLogin") + "";
 
                                 SetToInsert.push(SelectToInsert);
                                 SelectToInsert = {};
@@ -1473,7 +1485,7 @@ function ClickEvent_btnSaveData()
                 }
                 else
                 {
-                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0}');
+                    updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0, "usuario": "' + window.sessionStorage.getItem("UserLogin") + '"}');
 
                     db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
                 }

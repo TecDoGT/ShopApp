@@ -79,6 +79,8 @@
 
                     //Form de accion correctiva
                     //inicio
+
+                    
                     $('<fieldset>')
                         .attr({ 'data-role': 'controlgroup', 'id': IDRes + '_noAplicaForm' })
                         .appendTo(GrupoID);
@@ -90,19 +92,39 @@
                         .html('Fecha de Plazo:')
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
 
+                    var FechaPlazo = rsRespuestas[iP].accion_fecha + "";
+
+                    var FechaSplit = FechaPlazo.split("-");
+                    if (FechaSplit.length > 0 && FechaSplit[0].length == 2)
+                    {
+                        var Dia = FechaSplit[0] * 1;
+                        var Mes = (FechaSplit[1] * 1) - 1;
+                        var Anio = (FechaSplit[2] * 1);
+
+                        Anio = Anio < 2000 ? Anio + 2000 : Anio;
+
+                        var fecha = new Date(Anio, Mes, Dia);
+
+                        FechaPlazo = fecha.getFullYear() + "-" + pad((fecha.getMonth() + 1) + "", 2) + "-" + fecha.getDate();
+                    }
+
                     $('<input>')
-                        .attr({ 'type': 'date', 'data-clear-btn': 'true', 'name': 'q_respuesta_accion_fecha_' + IDRes, 'id': 'q_respuesta_accion_fecha_' + IDRes })
+                        .attr({ 'type': 'date', 'value': FechaPlazo, 'data-clear-btn': 'true', 'name': 'q_respuesta_accion_fecha_' + IDRes, 'id': 'q_respuesta_accion_fecha_' + IDRes })
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
-
-
                     $('#q_respuesta_accion_fecha_' + IDRes).textinput();
+
                     //%cumple
                     $('<label>')
                         .attr({ 'for': 'q_respuesta_pct_cumplimiento_' + IDRes })
                         .html('% de Cumplimiento:')
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
+
+                    var pctCumple = rsRespuestas[iP].pct_cumplimiento * 1;
+
+                    pctCumple = (pctCumple == undefined || pctCumple == NaN) ? null : pctCumple;
+
                     $('<input>')
-                       .attr({ 'type': 'number', 'id': 'q_respuesta_pct_cumplimiento_' + IDRes, 'name': 'q_respuesta_pct_cumplimiento_' + IDRes })
+                       .attr({ 'type': 'number', 'value': pctCumple, 'id': 'q_respuesta_pct_cumplimiento_' + IDRes, 'name': 'q_respuesta_pct_cumplimiento_' + IDRes })
                        .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('#q_respuesta_pct_cumplimiento_' + IDRes).textinput();
 
@@ -112,7 +134,7 @@
                         .html('Accion Correctiva:')
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('<input>')
-                       .attr({ 'type': 'text', 'id': 'q_respuesta_accion_correctiva_' + IDRes, 'name': 'q_respuesta_accion_correctiva_' + IDRes })
+                       .attr({ 'type': 'text', 'value': rsRespuestas[iP].accion_correctiva, 'id': 'q_respuesta_accion_correctiva_' + IDRes, 'name': 'q_respuesta_accion_correctiva_' + IDRes })
                        .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('#q_respuesta_accion_correctiva_' + IDRes).textinput();
 
@@ -122,7 +144,7 @@
                         .html('Responsable: ')
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('<input>')
-                       .attr({ 'type': 'text', 'id': 'q_respuesta_accion_responsable_' + IDRes, 'name': 'q_respuesta_accion_responsable_' + IDRes })
+                       .attr({ 'type': 'text', 'value': rsRespuestas[iP].accion_responsable, 'id': 'q_respuesta_accion_responsable_' + IDRes, 'name': 'q_respuesta_accion_responsable_' + IDRes })
                        .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('#q_respuesta_accion_responsable_' + IDRes).textinput();
 
@@ -132,7 +154,7 @@
                         .html('Indicador:')
                         .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('<input>')
-                       .attr({ 'type': 'text', 'id': 'q_respuesta_accion_indicador_' + IDRes, 'name': 'q_respuesta_accion_indicador_' + IDRes })
+                       .attr({ 'type': 'text', 'value': rsRespuestas[iP].accion_indicador, 'id': 'q_respuesta_accion_indicador_' + IDRes, 'name': 'q_respuesta_accion_indicador_' + IDRes })
                        .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('#q_respuesta_accion_indicador_' + IDRes).textinput();
 
@@ -174,6 +196,8 @@
 
 function saveEncuesta()
 {
+    $("#loadingAJAX").show();
+            $("#AJAXLoadLabel").text("Guardando Datos");
     var rs = db.SELECT("q_respuesta",
         {
             empresa: window.sessionStorage.UserEmpresa,
@@ -187,7 +211,7 @@ function saveEncuesta()
         if (rs.length > 0)
         {
             var TableDef = db.DESCRIBE("q_respuesta");
-
+            
             $(rs).each(function (i, e)
             {
                 var ResIDTemp = "Pregunta_" + e.grupo + "_" + e.pregunta + "_res";
@@ -197,7 +221,7 @@ function saveEncuesta()
 
                 temp = (temp == undefined) ? null : temp * 1;
 
-                db.UPDATE("q_respuesta", { opcion: temp, modifica: 1, sinc: 0 }, { id: e.id });
+                db.UPDATE("q_respuesta", { opcion: temp, modifica: 1, sinc: 0, usuario: window.sessionStorage.getItem("UserLogin") }, { id: e.id });
 
                 $.each(listObj, function (j, val)
                 {
@@ -215,11 +239,11 @@ function saveEncuesta()
                     {
                         SubTempVal = SubTempVal * 1;
 
-                        StrUpdate = "{\"" + CampoTemp + "\": " + SubTempVal + ", \"modifica\": 1, \"sinc\": 0}";
+                        StrUpdate = "{\"" + CampoTemp + "\": " + SubTempVal + ", \"modifica\": 1, \"sinc\": 0, \"usuario\": \"" + window.sessionStorage.getItem("UserLogin") + "\"}";
                     }
                     else
                     {
-                        StrUpdate = "{\"" + CampoTemp + "\": \"" + SubTempVal + "\", \"modifica\": 1, \"sinc\": 0}";
+                        StrUpdate = "{\"" + CampoTemp + "\": \"" + SubTempVal + "\", \"modifica\": 1, \"sinc\": 0, \"usuario\": \"" + window.sessionStorage.getItem("UserLogin") + "\"}";
                     }
 
                     db.UPDATE("q_respuesta", JSON.parse(StrUpdate), { id: e.id });
@@ -227,7 +251,7 @@ function saveEncuesta()
                     
                 });
             });
-
+            
             Mensage("Datos Guardados...");
         }
     }
@@ -235,6 +259,8 @@ function saveEncuesta()
     {
         Mensage(error);
     }
+    $("#loadingAJAX").slideUp(500);
+            $("#AJAXLoadLabel").text("");
 }
 
 $(document).on("pagecreate", "#DLGEncuesta", function ()
