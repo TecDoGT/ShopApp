@@ -1516,7 +1516,7 @@ function ClickEvent_btnSaveData()
                 else
                 {
                     updateArray = updateArray.replace(", }", ', "modifica": 1, "sinc": 0, "usuario": "' + window.sessionStorage.getItem("UserLogin") + '"}');
-
+                    updateArray = updateArray.replace(/NaN/g, "null");
                     db.UPDATE(tableName, JSON.parse(updateArray), { id: rowID });
                 }
 
