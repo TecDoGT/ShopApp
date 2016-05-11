@@ -75,7 +75,10 @@ function tomarFoto(fuente, callback) {
             });*/
         navigator.camera.getPicture(onSuccess, onFail,
             {
-                quality: 50, allowEdit: true,
+                quality: 25,
+                targetWidth: 300,
+                targetHeight: 300,
+                allowEdit: true,
                 destinationType: Camera.DestinationType.FILE_URI,
                 pictureSource: fuente,
                 encodingType: Camera.EncodingType.JPEG,
