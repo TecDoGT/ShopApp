@@ -23,7 +23,7 @@
   <preference name="StatusBarOverlaysWebView" value="false" /> 
   <preference name="StatusBarBackgroundColor" value="#000000" />
   <preference name="StatusBarStyle" value="lightcontent" />
-  <preference name="CameraUsesGeolocation" value="true" />
+  <preference name="CameraUsesGeolocation" value="false" />
   
   <preference name="permissions" value="true" />
 	<feature name="File">
