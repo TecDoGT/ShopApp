@@ -82,7 +82,8 @@ function tomarFoto(fuente, callback) {
                 destinationType: Camera.DestinationType.FILE_URI,
                 pictureSource: fuente,
                 encodingType: Camera.EncodingType.JPEG,
-                saveToPhotoAlbum: true
+                saveToPhotoAlbum: true,
+                popoverOptions: new CameraPopoverOptions(300, 300, 100, 100, Camera.PopoverArrowDirection.ARROW_ANY)
             });
 
         function onSuccess(imageData)
