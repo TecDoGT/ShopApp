@@ -161,15 +161,45 @@
                        .appendTo("#" + IDRes + '_noAplicaForm_1');
                     $('#q_respuesta_accion_indicador_' + IDRes).textinput();
 
-
-
-
-
                     $('<input>')
                         .attr({ 'id': 'BTN_tomarFoto_' + IDRes, 'data-role': 'button', 'type': 'button', 'value': 'Foto' })
                         .appendTo("#" + IDRes + '_noAplicaForm_2');
 
                     $('#BTN_tomarFoto_' + IDRes).button();
+
+                    $('#BTN_tomarFoto_' + IDRes).on("click", function ()
+                    {
+                        
+
+                        try
+                        {
+                            tomarFoto(1, function (urlFoto)
+                            {
+                                getDataUri(urlFoto, 120, 120, function (imgBase64)
+                                {
+                                    $('<img>')
+                                        .attr({ 'id': "q_respuesta_img" + IDRes, 'src': "data:image/jpg;base64," + imgBase64 })
+                                        .appendTo("#" + IDRes + '_noAplicaForm_2');
+                                    alert(imgBase64.length)
+                                });
+                            });
+                        }
+                        catch (error)
+                        {
+                            var tempUrl = "../img/32113_steins_gate.jpg";
+                            getDataUri(tempUrl, 50, 50, function (imgBase64)
+                            {
+                                $('<img>')
+                                        .attr({ 'id': "q_respuesta_img" + IDRes, 'src': "data:image/jpg;base64," + imgBase64 })
+                                        .appendTo("#" + IDRes + '_noAplicaForm_2');
+                                alert(imgBase64.length)
+                            });
+
+                            Mensage(error);
+                        }
+
+                        
+                    });
 
                     $("#" + IDRes + '_noAplicaForm').controlgroup();
                     //fin
