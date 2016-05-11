@@ -75,15 +75,15 @@ function tomarFoto(fuente, callback) {
             });*/
         navigator.camera.getPicture(onSuccess, onFail,
             {
-                quality: 25,
+                quality: 50,
                 targetWidth: 300,
                 targetHeight: 300,
                 allowEdit: true,
                 destinationType: Camera.DestinationType.FILE_URI,
                 pictureSource: fuente,
                 encodingType: Camera.EncodingType.JPEG,
-                saveToPhotoAlbum: true,
-                popoverOptions: new CameraPopoverOptions(300, 300, 100, 100, Camera.PopoverArrowDirection.ARROW_ANY)
+                saveToPhotoAlbum: true
+                //popoverOptions: new CameraPopoverOptions(300, 300, 100, 100, Camera.PopoverArrowDirection.ARROW_ANY)
             });
 
         function onSuccess(imageData)
