@@ -67,6 +67,7 @@ function ValEntrada ()
 					window.sessionStorage.UserName = data.nombreUser;
 					window.sessionStorage.UserPais = data.usrPais;
 					window.sessionStorage.UserPromotor = data.promotor;
+					window.sessionStorage.UserMaxFoto = data.max_foto;
 					
 					var rs = db.SELECT("movil_User", function (row)
 					{
@@ -82,7 +83,8 @@ function ValEntrada ()
 								passWord: UPwd,
 								userPais: data.usrPais,
 								Empresa: data.usrEmpresa,
-								userPromotor: data.promotor
+								userPromotor: data.promotor,
+								max_foto: data.max_foto
 							}
 						];
 						db.INSERT_INTO("movil_User", dataValues);
@@ -125,6 +127,7 @@ function ValEntrada ()
 					window.sessionStorage.UserEmpresa = rs[0].Empresa;
 					window.sessionStorage.UserPais = rs[0].userPais;
 					window.sessionStorage.UserPromotor = rs[0].userPromotor;
+					window.sessionStorage.UserMaxFoto = rs[0].max_foto;
 					var txtMsg = $("#tLogIn").text();
 					new Messi(txtMsg, 
 						{

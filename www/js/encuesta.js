@@ -175,24 +175,50 @@
                         {
                             tomarFoto(1, function (urlFoto)
                             {
-                                getDataUri(urlFoto, 120, 120, function (imgBase64)
+                                getDataUri(urlFoto, 300, 300, function (imgBase64)
                                 {
                                     $('<img>')
                                         .attr({ 'id': "q_respuesta_img" + IDRes, 'src': "data:image/jpg;base64," + imgBase64 })
                                         .appendTo("#" + IDRes + '_noAplicaForm_2');
-                                    alert(imgBase64.length)
+
+                                    var RSmaxFoto = db.SELECT("movil_User", { userName: window.sessionStorage.UserLogin });
+                                    var maxFoto = RSmaxFoto[0].max_foto;
+
+                                    db.INSERT_INTO("vc_foto", [
+                                        {
+                                            'linea': (maxFoto * 1) + 1,
+                                            'foto_base64': imgBase64,
+                                            'usuario': window.sessionStorage.UserLogin,
+                                            'modifica': 1,
+                                            'fuente': 2
+                                        }]);
+
+                                    db.UPDATE("movil_User", { max_foto: ((maxFoto * 1) + 1) }, { userName: window.sessionStorage.UserLogin });
                                 });
                             });
                         }
                         catch (error)
                         {
                             var tempUrl = "../img/32113_steins_gate.jpg";
-                            getDataUri(tempUrl, 50, 50, function (imgBase64)
+                            getDataUri(tempUrl, 300, 300, function (imgBase64)
                             {
                                 $('<img>')
                                         .attr({ 'id': "q_respuesta_img" + IDRes, 'src': "data:image/jpg;base64," + imgBase64 })
                                         .appendTo("#" + IDRes + '_noAplicaForm_2');
-                                alert(imgBase64.length)
+
+                                var RSmaxFoto = db.SELECT("movil_User", { userName: window.sessionStorage.UserLogin });
+                                var maxFoto = RSmaxFoto[0].max_foto;
+
+                                db.INSERT_INTO("vc_foto", [
+                                        {
+                                            'linea': (maxFoto * 1) + 1,
+                                            'foto_base64': imgBase64,
+                                            'usuario': window.sessionStorage.UserLogin,
+                                            'modifica': 1,
+                                            'fuente': 2
+                                        }]);
+
+                                db.UPDATE("movil_User", { max_foto: ((maxFoto * 1) + 1) }, { userName: window.sessionStorage.UserLogin });
                             });
 
                             Mensage(error);

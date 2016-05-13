@@ -118,14 +118,15 @@ function CreateDB(name)
 			movil_help: ''
 		});
 			
-		db.CREATE("movil_User", 
+		db.CREATE("movil_User",
 		{
-			id: 0,
-			userName: '',
-			passWord: '',
-			userPais: '',
-			Empresa: '',
-		    userPromotor: ''
+		    id: 0,
+		    userName: '',
+		    passWord: '',
+		    userPais: '',
+		    Empresa: '',
+		    userPromotor: '',
+		    max_foto: 0
 		});
 		
 		db.CREATE("ListMod",
@@ -392,9 +393,63 @@ function DropDataBase(name)
                 passWord: tempPws,
                 userPais: window.sessionStorage.UserPais,
                 Empresa: window.sessionStorage.UserEmpresa,
-                userPromotor: window.sessionStorage.UserPromotor
+                userPromotor: window.sessionStorage.UserPromotor,
+                max_foto: window.sessionStorage.UserMaxFoto
             }]);
 	}
+}
+
+function SendFoto(rsFotos, callback)
+{
+    if (rsFotos.length > 0) {
+        var limit = rsFotos.length;
+        var strCB =
+            {
+                'ok': 0,
+                'error': 0,
+                'limit': limit
+            };
+        $(rsFotos).each(function (i, e) {
+            var payLoad =
+            {
+                'cmd': "SendFoto",
+                'Empresa': window.sessionStorage.getItem("UserEmpresa"),
+                'usuario': window.sessionStorage.getItem("UserLogin"),
+                'strFoto': e.foto_base64,
+                'linea': e.linea
+            };
+            $.post(uriServer, payLoad,
+            function (data) {
+                if (limit == 1)
+                {
+                    strCB.ok += 1;
+                    callback(strCB);
+                }
+                else {
+                    strCB.ok += 1;
+                    --limit;
+                }
+            }, "json")
+            .fail(function (qXHR, textStatus, errorThrown) {
+                console.log(qXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+                if (limit == 0)
+                {
+                    strCB.error += 1;
+                    callback(strCB);
+                }
+                else {
+                    strCB.error += 1;
+                    --limit;
+                }
+
+            });
+        });
+
+    }
+    else
+        callback(strCB);
 }
 
 function SendData2DB()
@@ -402,7 +457,12 @@ function SendData2DB()
     $("#loadingAJAX").show();
     $("#AJAXLoadLabel").text("");
 
-    var rs = db.SELECT("ListMod", { sinc: 1, neadForm: 1 });
+    var rs = db.SELECT("ListMod",function (row)
+    {
+        return row.sinc == 1
+        && row.neadForm == 1
+        && row.tablaName != 'vc_foto'
+    });
     var ListTables = [];
     if (rs.length > 0)
     {
@@ -441,47 +501,60 @@ function SendData2DB()
         });
         var empresaVal = window.sessionStorage.getItem("UserEmpresa");
         var usrVal = window.sessionStorage.getItem("UserLogin");
-        var playload = { "User": usrVal, "Empresa": empresaVal, "cmd": "SendDataFormMovil", "Data": ListTables };
+        var payload = { "User": usrVal, "Empresa": empresaVal, "cmd": "SendDataFormMovil", "Data": ListTables };
 
-        $.post("http://200.30.150.165:8080/webservidor2/mediador.php", playload,
-        function (data)
-        {
-            var listTables = data;
-
-            var strTablas = $("#msgDBSincOK").text() + " ";
-
-            $(listTables).each(function (i, e)
+        if (ListTables.length > 0)
+            $.post("http://200.30.150.165:8080/webservidor2/mediador.php", payload,
+            function (data)
             {
-                var listOfID = e.idList;
+                var listTables = data;
 
-                strTablas += e.tableName + ", ";
+                var strTablas = $("#msgDBSincOK").text() + " ";
 
-                $(listOfID).each(function (j, v)
+                $(listTables).each(function (i, e)
                 {
-                    db.UPDATE(e.tableName, { sinc: 1 }, {id: v});
+                    var listOfID = e.idList;
+
+                    strTablas += e.tableName + ", ";
+
+                    $(listOfID).each(function (j, v) {
+                        db.UPDATE(e.tableName, { sinc: 1 }, { id: v });
+                    });
+
                 });
-                    
+
+                strTablas += "#fin$";
+
+                strTablas = strTablas.replace(", #fin$", " ]");
+
+                var rsDataFoto = db.SELECT("vc_foto", { modifica: 1, sinc: 0 });
+
+                if (rsDataFoto.length > 0)
+                {
+                    SendFoto(rsDataFoto, function (res)
+                    {
+                        if (res.ok == res.limit || res.limit == undefined) {
+                            Mensage(strTablas);
+
+                            $("#loadingAJAX").hide();
+                            DropDataBase("KannelMovil");
+                            $("#btnDBDown").trigger("click");
+                        }
+                        else
+                            Mensage("Error al envio de Imagenes");
+                    });
+                }                
+            }, "json")
+            .fail(function (qXHR, textStatus, errorThrown)
+            {
+                Mensage(qXHR.responseText);
+                console.log(qXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+
+                $("#loadingAJAX").hide();
             });
-
-            strTablas += "#fin$";
-
-            strTablas = strTablas.replace(", #fin$", " ]");
-
-            Mensage(strTablas);
-
-            $("#loadingAJAX").hide();
-            DropDataBase("KannelMovil");
-            $("#btnDBDown").trigger("click");
-        }, "json")
-        .fail(function (qXHR, textStatus, errorThrown)
-        {
-            Mensage(qXHR.responseText);
-            console.log(qXHR);
-            console.log(textStatus);
-            console.log(errorThrown);
-
-            $("#loadingAJAX").hide();
-        });
+        
     }
 }
 
@@ -927,6 +1000,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		    var idJQ = '#' + ele.id_obj;
 
 		    var disableVar = null;
+		    var VisibleVar = (ele.sql_colnum == 0) ? "hidden" : "visible";
 
 		    if (ele.sql_pk == "P")
 		    {
@@ -948,16 +1022,19 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		    }
 
-		    switch (ele.content_type) {
+		    switch (ele.content_type)
+		    {
 		        case "D":
 		            switch (ele.sql_datatype) {
 		                case "IN":
 		                case "DE":
 		                    $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
+		                    $(idJQ).css("visibility", VisibleVar);
 		                    $(idJQ).textinput();
 		                    break;
 		                case "VA":
 		                    $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+		                    $(idJQ).css("visibility", VisibleVar);
 		                    $(idJQ).textinput();
 		                    break;
 		                case "DA":
@@ -982,6 +1059,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                    $('<input>')
                                 .attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': disableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' })
                                 .appendTo("#PageBuilder_From");
+		                    $(idJQ).css("visibility", VisibleVar);
 		                    $(idJQ).textinput();
 		                    break;
 		            }
@@ -989,6 +1067,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		        case "C":
 		            var check = (InputValue == 1) ? true : false;
 		            $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': disableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check }).appendTo("#PageBuilder_From");
+		            $(idJQ).css("visibility", VisibleVar);
 		            $(idJQ).checkboxradio();
 		            break;
 		        case "B":
@@ -1008,7 +1087,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                else
 		                    $("<option>").attr({ 'value': listV[i] }).html(valor).appendTo(tempID);
 		            });
-
+		            $(idJQ).css("visibility", VisibleVar);
 		            $(idJQ).selectmenu();
 		            break;
 		        case "Q":
@@ -1025,6 +1104,8 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		            window.sessionStorage.removeItem("#PKDisable");
 		            break;
 		    }
+
+		   
 
 		});
 
@@ -1172,6 +1253,7 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
             var idJQ = '#' + ele.id_obj;
 
             var DisableVar = (ListKey[ListKey.length - 1] == tempID) ? 'disabled' : null;
+            var VisibleVar = (ele.sql_colnum == 0) ? "hidden" : "visible";
             
             var InputValue = window.sessionStorage.getItem(idJQ.toLowerCase() + "$");
 
@@ -1244,7 +1326,7 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
                     window.sessionStorage.removeItem("#PKDisable");
                     break;
             }
-
+            $(idJQ).css("visibility", VisibleVar);
         });
 
         var rsTabla = db.SELECT("ListMod", function (row) {
@@ -1541,7 +1623,46 @@ function ClickEvent_btnNewReg(tableName, project_id, object_id)
 
 // on Create events 
 
+var onSuccessGPSPormotor = function (position)
+{
+    var GPSLong = position.coords.longitude;
+    var GPSLat = position.coords.latitude;
+    var GPSAlti = position.coords.altitude;
+
+    var maxLinea = db.SELECT("promotor_gps", { empresa: window.sessionStorage.UserEmpresa, promotor: window.sessionStorage.UserPromotor }).MAX("linea");
+
+    maxLinea = (maxLinea == null) ? 1 : maxLinea + 1;
+
+    var fechaGps = new Date(position.timestamp);
+    var fechaSys = new Date();
+    var setData =
+        [{
+            'fuente': 2,
+            'modifica': 1,
+            'empresa': (window.sessionStorage.UserEmpresa * 1),
+            'promotor': (window.sessionStorage.UserPromotor * 1),
+            'linea': maxLinea,
+            'gps_latitud': GPSLat,
+            'gps_longitud': GPSLong,
+            'gps_altitud': GPSAlti,
+            'fecha_gps': fechaGps.getFullYear() + "-" + (fechaGps.getMonth() + 1) + "-" + fechaGps.getDate() + " " +
+                fechaGps.getHours() + ":" + fechaGps.getMinutes() + ":" + fechaGps.getSeconds(),
+            'fecha_sistema': fechaSys.getFullYear() + "-" + (fechaSys.getMonth() + 1) + "-" + fechaSys.getDate(),
+            'usuario': window.sessionStorage.getItem("UserLogin")
+        }];
+
+    db.INSERT_INTO("promotor_gps", setData);
+};
+
 $(document).ready(function (e) {
+
+    var TimeGpsInterval = 60 * 1000;//3600 * 1000;
+
+    var idGPSTRack = setInterval(function ()
+    {
+        if (window.sessionStorage.UserPromotor && db.EXISTS_TABLE("promotor_gps"))
+            navigator.geolocation.getCurrentPosition(onSuccessGPSPormotor, onError);
+    }, TimeGpsInterval);
 
     if (window.localStorage.getItem("LocalStorageDB-KannelMovil-::tables::") == undefined) {
         CreateDB("KannelMovil");
@@ -1571,6 +1692,15 @@ $(document).ready(function (e) {
     $.each(listaOb, function (index, val) {
         $(val).hide();
     });
+
+    if (window.sessionStorage.UserEmpresa)
+    {
+        window.location = "#IndexPage";
+    }
+    else
+    {
+        window.location = "#page-home";
+    }
 });
 
 $(document).on("pagecreate", "#IndexPage", function() 

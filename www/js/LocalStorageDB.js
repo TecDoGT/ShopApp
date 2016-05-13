@@ -330,6 +330,15 @@ License:       MIT License (see homepage)
         };
 
         /**
+        * LocalStorageDB.EXISTS_TABLE() -> boolean
+        * 
+        */
+        this.EXISTS_TABLE = function (table)
+        {
+            return tableExists(table);
+        }
+
+        /**
 		 * LocalStorageDB.SHOW_TABLES() -> array
 		 * Provides an array of table names
 		 */
