@@ -1200,7 +1200,13 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
     
     var rsLastReg = db.SELECT(tableName, { id: NextRowID - 1 });
 
-    var Max_1 = (rsLastReg[0][ListKey[ListKey.length - 1]] * 1) + 1;
+    var Max_1 = 0;
+
+    if (rsLastReg.length > 0) {
+        Max_1 = (rsLastReg[0][ListKey[ListKey.length - 1]] * 1) + 1;
+    }
+    else
+        Max_1 = 1;
     
     window.sessionStorage.setItem("#P_" + tableName + "_" + ListKey[ListKey.length - 1] + "$", Max_1);
 
@@ -1326,7 +1332,7 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
                     window.sessionStorage.removeItem("#PKDisable");
                     break;
             }
-            $(idJQ).css("visibility", VisibleVar);
+            //$(idJQ).css("visibility", VisibleVar);
         });
 
         var rsTabla = db.SELECT("ListMod", function (row) {
@@ -1555,29 +1561,28 @@ function ClickEvent_btnSaveData()
 
                     updateArray = updateArray.replace(", }", ', "fuente": 2, "modifica": 1, "sinc": 0, "usuario": "' + window.sessionStorage.getItem("UserLogin") + '"}');
 
+                    updateArray = updateArray.replace(/NaN/g, "null");
+
                     var InssertArray = updateArray.replace("{", "[{").replace("}", "}]");
 
                     db.INSERT_INTO(tableName, JSON.parse(InssertArray));
 
-                    if (tableName == "q_encuesta")
-                    {
+                    //window.sessionStorage.setItem("#FromMode", "U");
+
+                    if (tableName == "q_encuesta") {
                         var arrColl = ["empresa", "formulario", "grupo", "pregunta"];
 
-                        var triggerRS = db.SELECT("q_pregunta", function (row)
-                        {
+                        var triggerRS = db.SELECT("q_pregunta", function (row) {
                             return row.empresa == window.sessionStorage.getItem("UserEmpresa")
                             && row.formulario == window.sessionStorage.getItem("#P_q_encuesta_formulario$");
                         });
 
-                        if (triggerRS.length > 0)
-                        {
+                        if (triggerRS.length > 0) {
 
                             var SetToInsert = [];
                             var SelectToInsert = {};
-                            $(triggerRS).each(function (i, e)
-                            {
-                                $.each(arrColl, function (j, val)
-                                {
+                            $(triggerRS).each(function (i, e) {
+                                $.each(arrColl, function (j, val) {
                                     SelectToInsert[val] = e[val];
                                 });
 
@@ -1593,6 +1598,13 @@ function ClickEvent_btnSaveData()
 
                             db.INSERT_INTO("q_respuesta", SetToInsert);
                         }
+                    }
+                    else
+                    {
+                        rowID = window.sessionStorage.getItem("#RowID");
+
+                        $("#btnVC_Atras").trigger("click");
+                        BuildFormMobil(tableName, pID, oID, rowID);
                     }
                 }
                 else
