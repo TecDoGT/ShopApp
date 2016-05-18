@@ -90,7 +90,8 @@ function CreateDB(name)
 			sql_pk: '',
 			data_source_movil: '',
 			pk_pos: "0",
-            enabled: ''
+			enabled: '',
+            visible: ''
 		});
 		
 		db.CREATE("Object_Movil",
@@ -510,15 +511,15 @@ function SendData2DB()
                 var listTables = data;
 
                 var strTablas = $("#msgDBSincOK").text() + " ";
-
-                $(listTables).each(function (i, e)
-                {
+                var count = 0;
+                $(listTables).each(function (i, e) {
                     var listOfID = e.idList;
 
                     strTablas += e.tableName + ", ";
 
                     $(listOfID).each(function (j, v) {
                         db.UPDATE(e.tableName, { sinc: 1 }, { id: v });
+                        count++;
                     });
 
                 });
@@ -529,11 +530,12 @@ function SendData2DB()
 
                 var rsDataFoto = db.SELECT("vc_foto", { modifica: 1, sinc: 0 });
 
-                if (rsDataFoto.length > 0)
+                if (rsDataFoto.length > 0 && count > 0)
                 {
                     SendFoto(rsDataFoto, function (res)
                     {
-                        if (res.ok == res.limit || res.limit == undefined) {
+                        if (res.ok == res.limit || res.limit == undefined)
+                        {
                             Mensage(strTablas);
 
                             $("#loadingAJAX").hide();
@@ -543,7 +545,20 @@ function SendData2DB()
                         else
                             Mensage("Error al envio de Imagenes");
                     });
-                }                
+                }
+                else
+                {
+                    $("#loadingAJAX").hide();
+                    if (count > 0)
+                    {
+                        DropDataBase("KannelMovil");
+                        $("#btnDBDown").trigger("click");
+                    }
+                    else
+                    {
+                        Mensage("Error Al sinc.");
+                    }
+                }
             }, "json")
             .fail(function (qXHR, textStatus, errorThrown)
             {
@@ -554,6 +569,11 @@ function SendData2DB()
 
                 $("#loadingAJAX").hide();
             });
+        else
+        {
+            $("#loadingAJAX").hide();
+            Mensage("No Datos Modificados.");
+        }
         
     }
 }
@@ -842,7 +862,7 @@ function FillComboQuery(tableName, OWhere, ColumnName, initVal)
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0)
         {
-            $("<select>").attr({ 'id': idSinHash, 'disabled': DisabelVar, 'onblur': 'saveTemVal("#' + idSinHash + '", "");' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'disabled': DisabelVar, 'onblur': 'saveTemVal("#' + idSinHash + '", "");' }).appendTo(tempID + "_div");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele)
@@ -893,7 +913,7 @@ function FillComboQueryD(tableName, OWhere, ColumnName, initVal)
         var rs = db.SELECT(tableName, OWhere);
         var idSinHash = tempID.toString().replace("#", "");
         if (rs.length > 0) {
-            $("<select>").attr({ 'id': idSinHash, 'disabled':DisabelVar, 'onchange': 'CQDRefreshForm("' + idSinHash + '", "' + OtableName + '", ' + OPID + ', ' + OOID + ', ' + OrowID + ');' }).appendTo("#PageBuilder_From");
+            $("<select>").attr({ 'id': idSinHash, 'disabled': DisabelVar, 'onchange': 'CQDRefreshForm("' + idSinHash + '", "' + OtableName + '", ' + OPID + ', ' + OOID + ', ' + OrowID + ');' }).appendTo(tempID + "_div");
             $("<option>").attr({ 'value': 'Empty' }).html("Select One.").appendTo(tempID);
 
             $(rs).each(function (index, ele) {
@@ -995,8 +1015,6 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		    var InputValue = (rsData[0][tempID] == undefined) ? '' : rsData[0][tempID];
 
-		    $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo("#PageBuilder_From");
-
 		    var idJQ = '#' + ele.id_obj;
 
 		    var disableVar = null;
@@ -1022,19 +1040,33 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 
 		    }
 
+		    var IDObjDiv = "#" + ele.id_obj + "_div";
+
+		    $('<div>')
+                .attr({ 'id': ele.id_obj + "_div" })
+                .appendTo("#PageBuilder_From");
+		    if (ele.visible == "N")
+		        $(IDObjDiv).hide();
+
+		    $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo(IDObjDiv);
+
 		    switch (ele.content_type)
 		    {
 		        case "D":
 		            switch (ele.sql_datatype) {
 		                case "IN":
 		                case "DE":
-		                    $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
-		                    $(idJQ).css("visibility", VisibleVar);
+		                    $('<input>')
+                                .attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' })
+                                .appendTo(IDObjDiv);
+		                    
 		                    $(idJQ).textinput();
 		                    break;
 		                case "VA":
-		                    $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
-		                    $(idJQ).css("visibility", VisibleVar);
+		                    $('<input>')
+                                .attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': disableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' })
+                                .appendTo(IDObjDiv);
+		                    
 		                    $(idJQ).textinput();
 		                    break;
 		                case "DA":
@@ -1058,21 +1090,20 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
                             
 		                    $('<input>')
                                 .attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': disableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' })
-                                .appendTo("#PageBuilder_From");
-		                    $(idJQ).css("visibility", VisibleVar);
+                                .appendTo(IDObjDiv);
 		                    $(idJQ).textinput();
 		                    break;
 		            }
 		            break;
 		        case "C":
 		            var check = (InputValue == 1) ? true : false;
-		            $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': disableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check }).appendTo("#PageBuilder_From");
-		            $(idJQ).css("visibility", VisibleVar);
+		            $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': disableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check })
+                        .appendTo(IDObjDiv);
 		            $(idJQ).checkboxradio();
 		            break;
 		        case "B":
 		            var tempID = "#" + ele.id_obj;
-		            $("<select>").attr({ 'id': ele.id_obj, 'disabled': disableVar, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+		            $("<select>").attr({ 'id': ele.id_obj, 'disabled': disableVar, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo(IDObjDiv);
 		            $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
 
 		            var listL_S = ele.list_labels + "";
@@ -1087,7 +1118,6 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		                else
 		                    $("<option>").attr({ 'value': listV[i] }).html(valor).appendTo(tempID);
 		            });
-		            $(idJQ).css("visibility", VisibleVar);
 		            $(idJQ).selectmenu();
 		            break;
 		        case "Q":
@@ -1273,34 +1303,42 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
                 InputValue = temp;
             }
 
-            $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo("#PageBuilder_From");
+            var IDObjDiv = "#" + ele.id_obj + "_div";
+
+            $('<div>')
+                .attr({ 'id': ele.id_obj + "_div" })
+                .appendTo("#PageBuilder_From");
+            if (ele.visible == "N")
+                $(IDObjDiv).hide();
+
+            $('<label>').attr({ 'for': ele.id_obj }).html(ele.label).appendTo(IDObjDiv);
             switch (ele.content_type) {
                 case "D":
                     switch (ele.sql_datatype) {
                         case "IN":
                         case "DE":
-                            $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': DisableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo("#PageBuilder_From");
+                            $('<input>').attr({ 'type': 'number', 'id': ele.id_obj, 'disabled': DisableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "' + ele.sql_datatype + '");' }).appendTo(IDObjDiv);
                             $(idJQ).textinput();
                             break;
                         case "VA":
-                            $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': DisableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+                            $('<input>').attr({ 'type': 'text', 'id': ele.id_obj, 'disabled': DisableVar, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo(IDObjDiv);
                             $(idJQ).textinput();
                             break;
                         case "DA":
                         case "DT":
-                            $('<input>').attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': DisableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+                            $('<input>').attr({ 'type': 'date', 'data-clear-btn': 'true', 'disabled': DisableVar, 'id': ele.id_obj, 'value': InputValue, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo(IDObjDiv);
                             $(idJQ).textinput();
                             break;
                     }
                     break;
                 case "C":
                     var check = (InputValue == 1) ? true : false;
-                    $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': DisableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check }).appendTo("#PageBuilder_From");
+                    $('<input>').attr({ 'type': 'checkbox', 'id': ele.id_obj, 'disabled': DisableVar, 'onchange': 'saveTemVal("#' + ele.id_obj + '", "CB");', 'checked': check }).appendTo(IDObjDiv);
                     $(idJQ).checkboxradio();
                     break;
                 case "B":
                     var tempID = "#" + ele.id_obj;
-                    $("<select>").attr({ 'id': ele.id_obj, 'disabled': DisableVar, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo("#PageBuilder_From");
+                    $("<select>").attr({ 'id': ele.id_obj, 'disabled': DisableVar, 'onblur': 'saveTemVal("#' + ele.id_obj + '", "");' }).appendTo(IDObjDiv);
                     $("<option>").attr({ 'value': 'Empty' }).html(ele.label).appendTo(tempID);
 
                     var listL_S = ele.list_labels + "";
@@ -1616,6 +1654,8 @@ function ClickEvent_btnSaveData()
 
                 var IdListMod = rs[0].id;
                 db.UPDATE("ListMod", { sinc: 1 }, { id: IdListMod });
+
+                Mensage("Datos Guardados...");
             }
 
 
