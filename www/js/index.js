@@ -738,14 +738,18 @@ function GetPrimaryKey(tableName, proj_Id, obj_Id)
 
 function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 {
+    window.sessionStorage.setItem("#TableWhere", JSON.stringify(Owhere));
 
     $("#PageBuilder_Lista").empty();
     $('<form>').html('<input id="filterTable-inpu2t" data-type="search">').appendTo("#PageBuilder_Lista");
+    $("#filterTable-inpu2t").textinput();
     $('<table>').attr({ 'id': 'PageBuilder_Tabla', 'data-role': 'table', 'data-mode': 'columntoggle', 'class': 'ui-responsive table-stroke', 'data-filter': 'true', 'data-input': '#filterTable-inpu2t' }).appendTo("#PageBuilder_Lista");
     $('<thead>').html('<tr><th >Ver...</th></tr>').appendTo("#PageBuilder_Tabla");
     $('<tbody>').appendTo("#PageBuilder_Tabla");
 
-    $("#PageBuilder_Lista").trigger("create");
+    //$("#PageBuilder_Lista").trigger("create");
+
+    
 	
 	
 	tableName = tableName.toLowerCase();
@@ -822,14 +826,22 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 
 		        
 		    });
+		    try
+		    {
+		        $("#PageBuilder_Tabla").table(
+                    {
+                        columnPopupTheme: "a",
+                        refresh: null
+                    });
 
-		    $("#PageBuilder_Tabla").table(
-                {
-                    columnPopupTheme: "a",
-                    refresh: null
-                });
+		        $("#PageBuilder_Tabla").table("refresh");
+		    }
+		    catch(Ex)
+		    {
+		        $("#PageBuilder_Tabla").table("refresh");
+		    }
 
-		    $("#PageBuilder_Tabla").table("refresh");
+		    $("#PageBuilder_Lista").trigger("create");
 
 		}
 		else {
@@ -1961,6 +1973,12 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#btnSaveData").hide();
         $("#btnGeoPos").hide();
         $("#btnNewReg").show();
+
+        DataGrid(window.sessionStorage.getItem("#TableName"),
+            window.sessionStorage.getItem("#Project_id"),
+            window.sessionStorage.getItem("#Object_id"),
+            JSON.parse(window.sessionStorage.getItem("#TableWhere")));
+
         window.sessionStorage.removeItem("#RowID");
         window.sessionStorage.removeItem("#TableName");
         window.sessionStorage.removeItem("#Project_id");
