@@ -538,9 +538,35 @@ function SendData2DB()
                         {
                             Mensage(strTablas);
 
-                            $("#loadingAJAX").hide();
-                            DropDataBase("KannelMovil");
-                            $("#btnDBDown").trigger("click");
+                            delete payload.Data;
+
+                            payload.cmd = "RunMain";
+
+                            $.post(uriServer, payload, 
+                                function (data) 
+                                {
+                                    if (data.OK == 1)
+                                    {
+                                        $("#loadingAJAX").hide();
+                                        DropDataBase("KannelMovil");
+                                        $("#btnDBDown").trigger("click");
+                                    }
+                                    else
+                                    {
+                                        $("#loadingAJAX").hide();
+                                        Mensage("Error Al sinc.[SP Ora movil_main]");
+                                    }
+                                        
+                                }, "json")
+                                .fail(function (qXHR, textStatus, errorThrown)
+                                {
+                                    Mensage(qXHR.responseText);
+                                    console.log(qXHR);
+                                    console.log(textStatus);
+                                    console.log(errorThrown);
+
+                                    $("#loadingAJAX").hide();
+                                });
                         }
                         else
                             Mensage("Error al envio de Imagenes");
@@ -551,8 +577,34 @@ function SendData2DB()
                     $("#loadingAJAX").hide();
                     if (count > 0)
                     {
-                        DropDataBase("KannelMovil");
-                        $("#btnDBDown").trigger("click");
+                        delete payload.Data;
+
+                        payload.cmd = "RunMain";
+
+                        $.post(uriServer, payload,
+                            function (data)
+                            {
+                                if (data.OK == 1)
+                                {
+                                    DropDataBase("KannelMovil");
+                                    $("#btnDBDown").trigger("click");
+                                }
+                                else
+                                {
+                                    $("#loadingAJAX").hide();
+                                    Mensage("Error Al sinc.[SP Ora movil_main]");
+                                }
+
+                            }, "json")
+                            .fail(function (qXHR, textStatus, errorThrown)
+                            {
+                                Mensage(qXHR.responseText);
+                                console.log(qXHR);
+                                console.log(textStatus);
+                                console.log(errorThrown);
+
+                                $("#loadingAJAX").hide();
+                            });
                     }
                     else
                     {
@@ -703,7 +755,22 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 
 	if (is_hijo == "1")
 	{
-	    $("#btnVC_Atras").trigger("click");
+	    $("#PageBuilder_Lista").show();
+	    $("#PageBuilder_From").hide();
+	    $("#btnVC_Atras").hide();
+	    $("#btnSaveData").hide();
+	    $("#btnGeoPos").hide();
+	    $("#btnNewReg").show();
+
+	    window.sessionStorage.removeItem("#RowID");
+	    window.sessionStorage.removeItem("#TableName");
+	    window.sessionStorage.removeItem("#Project_id");
+	    window.sessionStorage.removeItem("#Object_id");
+	    RemoveSessionVar();
+
+	    $(".liHijosShow")
+            .addClass("liHijosHide")
+            .removeClass("liHijosShow");
 	}
 }
 
@@ -896,6 +963,7 @@ function FillComboQuery(tableName, OWhere, ColumnName, initVal)
 function CQDRefreshForm(idObj, tableName, project_id, object_id, rowID)
 {
     saveTemVal("#" + idObj, "");
+    window.sessionStorage.setItem("#SiMSG", "1");
     $("#btnSaveData").trigger("click");
 
     if (window.sessionStorage.getItem("#FromMode") == "I")
@@ -1427,7 +1495,7 @@ function RemoveSessionVar()
 
     window.sessionStorage.removeItem("#listOFKeys");
 
-    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""},{"key":"PKID", "val":""}]');
+    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""},{"key":"PKID", "val":""},{"key":"#TableWhere", "val":""},{"key":"UserMaxFoto", "val":""}]');
 
     $(listDefaultSV).each(function (i, e)
     {
@@ -1667,7 +1735,13 @@ function ClickEvent_btnSaveData()
                 var IdListMod = rs[0].id;
                 db.UPDATE("ListMod", { sinc: 1 }, { id: IdListMod });
 
-                Mensage("Datos Guardados...");
+                if (window.sessionStorage.getItem("#SiMSG") != "1")
+                {
+                    Mensage('Datos Guardados...');
+                    window.sessionStorage.removeItem("#SiMSG");
+                }
+
+                
             }
 
 
@@ -1974,9 +2048,12 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#btnGeoPos").hide();
         $("#btnNewReg").show();
 
+        var pID = window.sessionStorage.getItem("#Project_id");
+        var oID = window.sessionStorage.getItem("#Object_id");
+
         DataGrid(window.sessionStorage.getItem("#TableName"),
-            window.sessionStorage.getItem("#Project_id"),
-            window.sessionStorage.getItem("#Object_id"),
+            pID,
+            oID,
             JSON.parse(window.sessionStorage.getItem("#TableWhere")));
 
         window.sessionStorage.removeItem("#RowID");

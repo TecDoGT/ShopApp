@@ -164,6 +164,10 @@
                     $('<input>')
                         .attr({ 'id': 'BTN_tomarFoto_' + IDRes, 'data-role': 'button', 'type': 'button', 'value': 'Foto' })
                         .appendTo("#" + IDRes + '_noAplicaForm_2');
+                    //Foto_linea
+                    $('<input>')
+                        .attr({ 'id': 'q_respuesta_linea_foto_' + IDRes, 'type': 'hidden', 'value': rsRespuestas[iP].linea_foto })
+                        .appendTo("#" + IDRes + '_noAplicaForm_2');
 
                     $('#BTN_tomarFoto_' + IDRes).button();
 
@@ -193,7 +197,10 @@
                                             'fuente': 2
                                         }]);
 
+                                    $("#q_respuesta_linea_foto_" + IDRes).val((maxFoto * 1) + 1);
+
                                     db.UPDATE("movil_User", { max_foto: ((maxFoto * 1) + 1) }, { userName: window.sessionStorage.UserLogin });
+                                    window.sessionStorage.setItem("UserMaxFoto", ((maxFoto * 1) + 1));
                                 });
                             });
                         }
@@ -218,7 +225,10 @@
                                             'fuente': 2
                                         }]);
 
+                                $("#q_respuesta_linea_foto_" + IDRes).val((maxFoto * 1) + 1);
+
                                 db.UPDATE("movil_User", { max_foto: ((maxFoto * 1) + 1) }, { userName: window.sessionStorage.UserLogin });
+                                window.sessionStorage.setItem("UserMaxFoto", ((maxFoto * 1) + 1));
                             });
 
                             Mensage(error);
@@ -270,7 +280,7 @@ function saveEncuesta()
         });
 
         try {
-            var listObj = ["q_respuesta_accion_fecha_", "q_respuesta_pct_cumplimiento_", "q_respuesta_accion_correctiva_", "q_respuesta_accion_responsable_", "q_respuesta_accion_indicador_"];
+            var listObj = ["q_respuesta_accion_fecha_", "q_respuesta_pct_cumplimiento_", "q_respuesta_accion_correctiva_", "q_respuesta_accion_responsable_", "q_respuesta_accion_indicador_", "q_respuesta_linea_foto_"];
             if (rs.length > 0) {
                 var TableDef = db.DESCRIBE("q_respuesta");
 
