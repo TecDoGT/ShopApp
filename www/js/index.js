@@ -4,6 +4,8 @@ var maxTrans = 0;
 var DownCount = 0;
 var failTablesList = "";
 
+
+
 var onSuccess = function (position) {
 
     var GPSLong = position.coords.longitude;
@@ -1495,7 +1497,7 @@ function RemoveSessionVar()
 
     window.sessionStorage.removeItem("#listOFKeys");
 
-    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""},{"key":"PKID", "val":""},{"key":"#TableWhere", "val":""},{"key":"UserMaxFoto", "val":""}]');
+    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""},{"key":"PKID", "val":""},{"key":"#TableWhere", "val":""},{"key":"UserMaxFoto", "val":""},{"key":"GPSLatAnt", "val":""},{"key":"GPSLongAnt", "val":""}]');
 
     $(listDefaultSV).each(function (i, e)
     {
@@ -1767,29 +1769,46 @@ var onSuccessGPSPormotor = function (position)
     var GPSLat = position.coords.latitude;
     var GPSAlti = position.coords.altitude;
 
-    var maxLinea = db.SELECT("promotor_gps", { empresa: window.sessionStorage.UserEmpresa, promotor: window.sessionStorage.UserPromotor }).MAX("linea");
+    var GpsLatAnt = window.sessionStorage.GPSLatAnt;
+    var GpsLonAnt = window.sessionStorage.GPSLongAnt;
 
-    maxLinea = (maxLinea == null) ? 1 : maxLinea + 1;
+    GpsLatAnt = GpsLatAnt == undefined ? 0 : GpsLatAnt;
+    GpsLonAnt = GpsLonAnt == undefined ? 0 : GpsLonAnt;
 
-    var fechaGps = new Date(position.timestamp);
-    var fechaSys = new Date();
-    var setData =
-        [{
-            'fuente': 2,
-            'modifica': 1,
-            'empresa': (window.sessionStorage.UserEmpresa * 1),
-            'promotor': (window.sessionStorage.UserPromotor * 1),
-            'linea': maxLinea,
-            'gps_latitud': GPSLat,
-            'gps_longitud': GPSLong,
-            'gps_altitud': GPSAlti,
-            'fecha_gps': fechaGps.getFullYear() + "-" + (fechaGps.getMonth() + 1) + "-" + fechaGps.getDate() + " " +
-                fechaGps.getHours() + ":" + fechaGps.getMinutes() + ":" + fechaGps.getSeconds(),
-            'fecha_sistema': fechaSys.getFullYear() + "-" + (fechaSys.getMonth() + 1) + "-" + fechaSys.getDate(),
-            'usuario': window.sessionStorage.getItem("UserLogin")
-        }];
+    var difLong = Math.abs(Math.abs(GPSLong * 1) - Math.abs(GpsLonAnt * 1));
+    var difLat = Math.abs(Math.abs(GPSLat * 1) - Math.abs(GpsLatAnt * 1));
 
-    db.INSERT_INTO("promotor_gps", setData);
+    if (difLong > 0.0001 && difLat > 0.0001)
+    {
+        var maxLinea = db.SELECT("promotor_gps", { empresa: window.sessionStorage.UserEmpresa, promotor: window.sessionStorage.UserPromotor }).MAX("linea");
+
+        maxLinea = (maxLinea == null) ? 1 : maxLinea + 1;
+
+        var fechaGps = new Date(position.timestamp);
+        var fechaSys = new Date();
+        var setData =
+            [{
+                'fuente': 2,
+                'modifica': 1,
+                'empresa': (window.sessionStorage.UserEmpresa * 1),
+                'promotor': (window.sessionStorage.UserPromotor * 1),
+                'linea': maxLinea,
+                'gps_latitud': GPSLat,
+                'gps_longitud': GPSLong,
+                'gps_altitud': GPSAlti,
+                'fecha_gps': fechaGps.getFullYear() + "-" + (fechaGps.getMonth() + 1) + "-" + fechaGps.getDate() + " " +
+                    fechaGps.getHours() + ":" + fechaGps.getMinutes() + ":" + fechaGps.getSeconds(),
+                'fecha_sistema': fechaSys.getFullYear() + "-" + (fechaSys.getMonth() + 1) + "-" + fechaSys.getDate(),
+                'usuario': window.sessionStorage.getItem("UserLogin")
+            }];
+
+        db.INSERT_INTO("promotor_gps", setData);
+        GpsLonAnt = GPSLong;
+        GpsLatAnt = GPSLat;
+
+        window.sessionStorage.GPSLatAnt = GPSLat;
+        window.sessionStorage.GPSLongAnt = GPSLong;
+    }
 };
 
 $(document).ready(function (e) {
