@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="com.ls.vway" version="1.2.0">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="com.ls.vway" version="1.3.1">
   <name>Kannel Movil</name>
   <description>Aplicacion para visitas a l Exterior</description>
   <author href="http://phonegap.com" email="gs@ls-sy.com">ls-sys</author>
@@ -54,8 +54,8 @@
 		<param name="android-package" value="org.apache.cordova.Capture" />
 		<param name="ios-package" value="CDVCapture" />
 	</feature>
-  
-  <plugin name="wellbload.cordova.appversion" spec="0.1.4" source="pgb" />
+
+  <gap:plugin name="cordova-plugin-app-version" version="0.1.7" source="npm"/>
   <plugin name="org.apache.cordova.battery-status" source="pgb" spec="0.2.11" />
   <gap:plugin name="cordova-plugin-camera"/>
 	<plugin name="org.apache.cordova.console" source="pgb" spec="0.2.11" />

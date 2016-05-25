@@ -672,13 +672,6 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
     var temp = p.split("/");
     var last = temp.pop();
 
-    if (last != tableName)
-    {
-        Obj_History.push({ 'path': p + "/" + tableName, 'pID': proj_Id, 'oID': obj_Id });
-
-        window.sessionStorage.setItem("#History", JSON.stringify(Obj_History));
-    }
-
     var is_hijo = window.sessionStorage.getItem("#HijoKannel");
 	var PK = GetPrimaryKey(tableName, proj_Id, obj_Id);
 	
@@ -714,8 +707,34 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	
 	var JOwhere = JSON.parse(Owhere);
 	
-	window.sessionStorage.PKNext = PKs;
-	window.sessionStorage.PKID = JSON.stringify(PkID);
+	if (last == tableName)
+	{
+	    var tempWhere = JSON.parse(LastObj.Where);
+	    Owhere = "{ ";
+	    $(tempWhere).each(function (i, v)
+	    {
+	        Owhere += '"' + v.colName + '": ' + v.id + ', ';
+	    });
+
+	    Owhere += "}";
+	    Owhere = Owhere.replace(", }", "}");
+
+	    JOwhere = JSON.parse(Owhere);
+
+	    window.sessionStorage.PKID = LastObj.Where;
+	}
+	else
+	{
+	    window.sessionStorage.PKNext = PKs;
+	    window.sessionStorage.PKID = JSON.stringify(PkID);
+
+	    Obj_History.push({ 'path': p + "/" + tableName, 'pID': proj_Id, 'oID': obj_Id, 'Where': JSON.stringify(PkID) });
+
+	    window.sessionStorage.setItem("#History", JSON.stringify(Obj_History));
+	}
+	
+
+
 	
 	var rsTabla = db.SELECT("ListMod", function (row) {
 	    return row.project_id == proj_Id &&
@@ -1928,7 +1947,7 @@ $(document).on("pagecreate", "#IndexPage", function()
    
     RemoveSessionVar();
 
-    window.sessionStorage.setItem("#History", JSON.stringify([{ 'path': 'root', 'pID': 0, 'oID': 0 }]));
+    window.sessionStorage.setItem("#History", JSON.stringify([{ 'path': 'root', 'pID': 0, 'oID': 0, 'Where': "" }]));
 
     if (window.sessionStorage.UserLogin && window.sessionStorage.UserPromotor)
     {
@@ -2163,17 +2182,19 @@ $(document).on("pagecreate", "#page-home", function ()
     {
         window.location = "#IndexPage";
     }
+
     try
     {
-        cordova.getAppVersion().then(function (version) {
-            $('.versionKannel').text(version);
-        });
+        console.log(AppVersion.version);
+        $('.versionKannel').text(AppVersion.version);
     }
     catch(error)
     {
         console.log(error);
         $('.versionKannel').text("Modo Debug");
     }
+
+    
     
 });
 
