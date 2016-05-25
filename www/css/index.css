@@ -94,6 +94,12 @@ tr:nth-child(even) {
     visibility:visible;
 }
 
+.versionKannel {
+
+    color:black;
+
+}
+
 .formNoAplica{
     border-width: thin;
     border-style:solid;

@@ -654,6 +654,31 @@ function refreshGrid(tableName, proj_Id, obj_Id)
 function BuildMantenimineto(tableName, proj_Id, obj_Id)
 {
     //window.location = "#PageBuilder";
+
+    if (!window.sessionStorage.getItem("#History"))
+    {
+        window.location = '#IndexPage';
+        RemoveSessionVar();
+        location.reload();
+    }
+
+    var Obj_History = JSON.parse(window.sessionStorage.getItem("#History"));
+
+    var LastObj = Obj_History.pop();
+    Obj_History.push(LastObj);
+
+    var p = LastObj.path + "";
+
+    var temp = p.split("/");
+    var last = temp.pop();
+
+    if (last != tableName)
+    {
+        Obj_History.push({ 'path': p + "/" + tableName, 'pID': proj_Id, 'oID': obj_Id });
+
+        window.sessionStorage.setItem("#History", JSON.stringify(Obj_History));
+    }
+
     var is_hijo = window.sessionStorage.getItem("#HijoKannel");
 	var PK = GetPrimaryKey(tableName, proj_Id, obj_Id);
 	
@@ -760,6 +785,7 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	    $("#PageBuilder_Lista").show();
 	    $("#PageBuilder_From").hide();
 	    $("#btnVC_Atras").hide();
+	    $("#btn_backH").show();
 	    $("#btnSaveData").hide();
 	    $("#btnGeoPos").hide();
 	    $("#btnNewReg").show();
@@ -812,7 +838,7 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
     $("#PageBuilder_Lista").empty();
     $('<form>').html('<input id="filterTable-inpu2t" data-type="search">').appendTo("#PageBuilder_Lista");
     $("#filterTable-inpu2t").textinput();
-    $('<table>').attr({ 'id': 'PageBuilder_Tabla', 'data-role': 'table', 'data-mode': 'columntoggle', 'class': 'ui-responsive table-stroke', 'data-filter': 'true', 'data-input': '#filterTable-inpu2t' }).appendTo("#PageBuilder_Lista");
+    $('<table>').attr({ 'id': 'PageBuilder_Tabla', 'data-role': 'table', 'class': 'ui-responsive table-stroke', 'data-filter': 'true', 'data-input': '#filterTable-inpu2t' }).appendTo("#PageBuilder_Lista");
     $('<thead>').html('<tr><th >Ver...</th></tr>').appendTo("#PageBuilder_Tabla");
     $('<tbody>').appendTo("#PageBuilder_Tabla");
 
@@ -921,6 +947,7 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		$("#PageBuilder_From").hide();
 		$("#PageBuilder_Tabla").show();
 		$("#btnVC_Atras").hide();
+		$("#btn_backH").show();
 		$("#btnSaveData").hide();
 		$("#btnNewReg").show();
 		$("#btnGeoPos").hide();
@@ -1260,6 +1287,7 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
 		$("#PageBuilder_From").show();
 		$("#PageBuilder_Lista").hide();
 		$("#btnVC_Atras").show();
+		$("#btn_backH").hide();
 		$("#btnSaveData").show();
 		$("#btnNewReg").hide();
 	}
@@ -1471,6 +1499,7 @@ function BuildFormMobilNewReg(tableName, project_id, object_id, rowID)
         $("#PageBuilder_From").show();
         $("#PageBuilder_Lista").hide();
         $("#btnVC_Atras").show();
+        $("#btn_backH").hide();
         $("#btnSaveData").show();
         $("#btnNewReg").hide();
     }
@@ -1497,7 +1526,7 @@ function RemoveSessionVar()
 
     window.sessionStorage.removeItem("#listOFKeys");
 
-    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""},{"key":"PKID", "val":""},{"key":"#TableWhere", "val":""},{"key":"UserMaxFoto", "val":""},{"key":"GPSLatAnt", "val":""},{"key":"GPSLongAnt", "val":""}]');
+    var listDefaultSV = JSON.parse('[{"key":"UserEmpresa", "val":""},{"key":"UserLogin", "val":""},{"key":"UserName", "val":""},{"key":"UserPais", "val":""},{"key":"UserPromotor", "val":""},{"key":"empresa", "val":""},{"key":"PKID", "val":""},{"key":"#TableWhere", "val":""},{"key":"UserMaxFoto", "val":""},{"key":"GPSLatAnt", "val":""},{"key":"GPSLongAnt", "val":""},{"key":"#History", "val":""}]');
 
     $(listDefaultSV).each(function (i, e)
     {
@@ -1756,6 +1785,40 @@ function ClickEvent_btnGeoPos()
     navigator.geolocation.getCurrentPosition(onSuccess, onError);
 }
 
+function ClickEvent_btn_backH()
+{
+    if (!window.sessionStorage.getItem("#History"))
+    {
+        window.location = '#IndexPage';
+        RemoveSessionVar();
+        location.reload();
+    }
+
+    var ObjHist = JSON.parse(window.sessionStorage.getItem("#History"));
+
+    var LastObj = ObjHist[ObjHist.length - 2];
+
+    var tableName = LastObj.path + "";
+    tableName = tableName.split("/");
+
+    tableName = tableName[tableName.length - 1].toString();
+
+    if (tableName == "root")
+    {
+        window.location = '#IndexPage';
+        RemoveSessionVar();
+        location.reload();
+    }
+    else
+    {
+        ObjHist.pop();
+        window.sessionStorage.setItem("#History", JSON.stringify(ObjHist));
+        BuildMantenimineto(tableName, LastObj.pID, LastObj.oID);
+    }
+
+
+}
+
 function ClickEvent_btnNewReg(tableName, project_id, object_id)
 {
     BuildFormMobilNewReg(tableName, project_id, object_id, 0);
@@ -1864,6 +1927,8 @@ $(document).on("pagecreate", "#IndexPage", function()
 {
    
     RemoveSessionVar();
+
+    window.sessionStorage.setItem("#History", JSON.stringify([{ 'path': 'root', 'pID': 0, 'oID': 0 }]));
 
     if (window.sessionStorage.UserLogin && window.sessionStorage.UserPromotor)
     {
@@ -2063,6 +2128,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         $("#PageBuilder_Lista").show();
         $("#PageBuilder_From").hide();
         $("#btnVC_Atras").hide();
+        $("#btn_backH").show();
         $("#btnSaveData").hide();
         $("#btnGeoPos").hide();
         $("#btnNewReg").show();
@@ -2097,7 +2163,17 @@ $(document).on("pagecreate", "#page-home", function ()
     {
         window.location = "#IndexPage";
     }
-    
+    try
+    {
+        cordova.getAppVersion().then(function (version) {
+            $('.versionKannel').text(version);
+        });
+    }
+    catch(error)
+    {
+        console.log(error);
+        $('.versionKannel').text("Modo Debug");
+    }
     
 });
 
