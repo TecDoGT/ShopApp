@@ -2183,7 +2183,7 @@ $(document).on("pagecreate", "#page-home", function ()
         window.location = "#IndexPage";
     }
 
-    try
+   /* try
     {
         console.log(AppVersion.version);
         $('.versionKannel').text(AppVersion.version);
@@ -2192,7 +2192,7 @@ $(document).on("pagecreate", "#page-home", function ()
     {
         console.log(error);
         $('.versionKannel').text("Modo Debug");
-    }
+    }*/
 
     
     
