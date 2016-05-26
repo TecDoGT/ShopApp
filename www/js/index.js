@@ -728,7 +728,7 @@ function BuildMantenimineto(tableName, proj_Id, obj_Id)
 	    window.sessionStorage.PKNext = PKs;
 	    window.sessionStorage.PKID = JSON.stringify(PkID);
 
-	    Obj_History.push({ 'path': p + "/" + tableName, 'pID': proj_Id, 'oID': obj_Id, 'Where': JSON.stringify(PkID) });
+	    Obj_History.push({ 'path': p + "/" + tableName, 'pID': proj_Id, 'oID': obj_Id, 'Where': JSON.stringify(PkID), 'rowID': 0 });
 
 	    window.sessionStorage.setItem("#History", JSON.stringify(Obj_History));
 	}
@@ -852,6 +852,8 @@ function GetPrimaryKey(tableName, proj_Id, obj_Id)
 
 function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 {
+    var ComeFForm = window.sessionStorage.getItem("#tf$");
+    window.sessionStorage.removeItem("#tf$");
     window.sessionStorage.setItem("#TableWhere", JSON.stringify(Owhere));
 
     $("#PageBuilder_Lista").empty();
@@ -864,7 +866,8 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
     //$("#PageBuilder_Lista").trigger("create");
 
     
-	
+    var lastHist = JSON.parse(window.sessionStorage.getItem("#History"));
+    lastHist = lastHist.pop();
 	
 	tableName = tableName.toLowerCase();
 	
@@ -970,6 +973,17 @@ function DataGrid(tableName, proj_Id, obj_Id, Owhere)
 		$("#btnSaveData").hide();
 		$("#btnNewReg").show();
 		$("#btnGeoPos").hide();
+
+		var PathTable = lastHist.path + "";
+		PathTable = PathTable.split("/");
+		PathTable = PathTable.pop();
+
+		ComeFForm = (ComeFForm == undefined || ComeFForm == null) ? 0 : ComeFForm;
+
+		if (PathTable == tableName && lastHist.rowID > 0 && ComeFForm == 0)
+		{
+		    BuildFormMobil(PathTable, lastHist.pID, lastHist.oID, lastHist.rowID);
+		}
 	}
 }
 
@@ -1113,6 +1127,15 @@ function BuildFormMobil(tableName, project_id, object_id, rowID)
     window.sessionStorage.setItem("#Project_id", project_id);
     window.sessionStorage.setItem("#Object_id", object_id);
     window.sessionStorage.setItem("#FromMode", "U");
+
+    var ObjHist = JSON.parse(window.sessionStorage.getItem("#History"));
+    var lastHist = ObjHist.pop();
+
+    lastHist.rowID = rowID;
+
+    ObjHist.push(lastHist);
+
+    window.sessionStorage.setItem("#History", JSON.stringify(ObjHist));
 
     $(".liHijosHide")
         .addClass("liHijosShow")
@@ -1947,7 +1970,7 @@ $(document).on("pagecreate", "#IndexPage", function()
    
     RemoveSessionVar();
 
-    window.sessionStorage.setItem("#History", JSON.stringify([{ 'path': 'root', 'pID': 0, 'oID': 0, 'Where': "" }]));
+    window.sessionStorage.setItem("#History", JSON.stringify([{ 'path': 'root', 'pID': 0, 'oID': 0, 'Where': "", 'rowID': 0 }]));
 
     if (window.sessionStorage.UserLogin && window.sessionStorage.UserPromotor)
     {
@@ -2155,6 +2178,7 @@ $(document).on("pagecreate", "#PageBuilder", function ()
         var pID = window.sessionStorage.getItem("#Project_id");
         var oID = window.sessionStorage.getItem("#Object_id");
 
+        window.sessionStorage.setItem("#tf$", "1");
         DataGrid(window.sessionStorage.getItem("#TableName"),
             pID,
             oID,
@@ -2182,19 +2206,6 @@ $(document).on("pagecreate", "#page-home", function ()
     {
         window.location = "#IndexPage";
     }
-
-   /* try
-    {
-        console.log(AppVersion.version);
-        $('.versionKannel').text(AppVersion.version);
-    }
-    catch(error)
-    {
-        console.log(error);
-        $('.versionKannel').text("Modo Debug");
-    }*/
-
-    
     
 });
 

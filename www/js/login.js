@@ -118,7 +118,13 @@ function ValEntrada ()
 			{
 				rs = db.SELECT("movil_User", function (row)
 				{
-					return ( row.userName == UName && row.passWord == UPwd );
+				    UName = UName + "";
+				    UPwd = UPwd + "";
+
+				    var User = row.userName + "";
+				    var pwd = row.passWord + "";
+
+				    return (User.toUpperCase() == UName.toUpperCase() && pwd.toUpperCase() == UPwd.toUpperCase());
 				});
 				
 				if (rs.length > 0)
