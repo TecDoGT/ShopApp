@@ -8,9 +8,10 @@ var failTablesList = "";
 
 var onSuccess = function (position) {
 
-    var GPSLong = position.coords.longitude;
-    var GPSLat = position.coords.latitude;
-    var GPSAlti = position.coords.altitude;
+    'use strict'
+    var GPSLong = position.coords.longitude,
+        GPSLat = position.coords.latitude,
+        GPSAlti = position.coords.altitude;
 
     Mensage('Latitude: ' + GPSLat + '\n' +
           'Longitude: ' + GPSLong + '\n' +
@@ -1718,11 +1719,16 @@ function ClickEvent_btnSaveData()
             if (rsDef.length > 0)
             {
                 $(rsDef).each(function (index, ele) {
-                    var ObjID = ele.id_obj;
-                    var colName = ObjID.toLowerCase().replace(tableName + "_", "");
-
-                    var InValue = $("#" + ObjID).val();
-                    var InputType = $("#" + ObjID).attr('type');
+                    var ObjID = ele.id_obj,
+                        colName = ObjID.toLowerCase().replace(tableName + "_", ""),
+                        InValue = $("#" + ObjID).val(),
+                        InputType = $("#" + ObjID).attr('type');
+                    
+                    if (ele.sql_pk == "P" && (InValue == undefined || InValue == null || InValue.trim() == "Empty"))
+                    {
+                        Mensage("El campo '" + ele.label + "' Es requerido.");
+                        throw "El campo '" + ele.label + "' Es requerido.";
+                    }
 
                     if (InputType == "checkbox")
                     {
