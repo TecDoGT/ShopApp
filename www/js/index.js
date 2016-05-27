@@ -1800,8 +1800,11 @@ function ClickEvent_btnSaveData()
                     {
                         rowID = window.sessionStorage.getItem("#RowID");
 
-                        $("#btnVC_Atras").trigger("click");
-                        BuildFormMobil(tableName, pID, oID, rowID);
+                        if (window.sessionStorage.getItem("#SiMSG") != "1")
+                        {
+                            $("#btnVC_Atras").trigger("click");
+                            BuildFormMobil(tableName, pID, oID, rowID);   
+                        }
                     }
                 }
                 else
@@ -1922,7 +1925,8 @@ var onSuccessGPSPormotor = function (position)
     }
 };
 
-$(document).ready(function (e) {
+$(document).ready(function (e) 
+{
 
     var TimeGpsInterval = 60 * 1000;//3600 * 1000;
 
@@ -2121,7 +2125,8 @@ $(document).on("pagecreate", "#IndexPage", function()
 	}
 });
 
-$(document).on("pagecreate", "#GridCatalog", function () {
+$(document).on("pagecreate", "#GridCatalog", function () 
+{
     $("#FBuscarCat").show();
     $("#FGrid").hide();
 
