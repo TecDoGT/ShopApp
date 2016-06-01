@@ -2015,7 +2015,8 @@ $(document).on("pagecreate", "#IndexPage", function()
                     $.post(uriServer,
                     {
                         "cmd": "ListModules",
-                        "Project": 58
+                        "Project": 58,
+                        "User": window.sessionStorage.UserLogin
                     },
                     function (data) {
                         $("#loadingAJAX").show();
